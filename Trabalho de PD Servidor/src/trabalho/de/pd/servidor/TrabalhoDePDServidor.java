@@ -5,7 +5,11 @@
  */
 package trabalho.de.pd.servidor;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -21,7 +25,7 @@ public class TrabalhoDePDServidor {
     
     private DatagramSocket socket;
     private DatagramPacket packet;
-    String receiveMSG,sendMSG;
+    Object receiveMSG,sendMSG;
     private boolean debug,Primario;
     /**
      * @param args the command line arguments
@@ -32,7 +36,6 @@ public class TrabalhoDePDServidor {
         packet=new DatagramPacket(new byte[MAX_SIZE],MAX_SIZE);
         socket=new DatagramSocket(7000);
         Primario=false;
-        this.debug=debug;
         try{
             run();
         }catch(NumberFormatException e){
@@ -48,6 +51,7 @@ public class TrabalhoDePDServidor {
     
     public void run() throws IOException
     {     
+        debug=true;
         if(socket==null)
         {
             return;
@@ -68,9 +72,9 @@ public class TrabalhoDePDServidor {
         }
     }
     
-    public String receive() throws IOException                
+    public Object receive() throws IOException                
     {
-        String recv;
+        ObjectInputStream recv;
         
         if(socket==null)
         {
@@ -78,18 +82,21 @@ public class TrabalhoDePDServidor {
         }
         
         socket.receive(packet);
-        recv=new String(packet.getData(),0,packet.getLength());
+        recv=new ObjectInputStream(new ByteArrayInputStream(packet.getData()));                           //ClassCastException | ClassNotFoundException 
         if(debug)
         {
-            System.out.println("Recevido:"+recv+" do IP:"+packet.getAddress().getHostAddress()+" e de Porto:"+packet.getPort());
+            System.out.println("Recevido do IP:"+packet.getAddress().getHostAddress()+" e de Porto:"+packet.getPort());
         }
         return recv;
     }
     
     public void send() throws IOException
     {
-        sendMSG=("Enviado do servidor");
-        packet.setData(sendMSG.getBytes());
+        ByteArrayOutputStream byteout=new ByteArrayOutputStream(MAX_SIZE);
+        ObjectOutputStream send=new ObjectOutputStream(byteout);
+        send.writeObject(sendMSG);
+        packet.setData(byteout.toByteArray());
+        packet.setLength(byteout.size());
         socket.send(packet);
     }
     
