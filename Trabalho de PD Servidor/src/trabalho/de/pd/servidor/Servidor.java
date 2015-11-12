@@ -7,6 +7,8 @@ package trabalho.de.pd.servidor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -30,6 +32,9 @@ public class Servidor implements Serializable{
     public InetAddress group;
     public int port;
     public int contador=0;
+    public byte []file=null;
+    public FileInputStream recvFile=null;
+    public FileOutputStream sendFile=null;
     
     //threads
     public Runnable HeartbeatsEnvia=null;
@@ -42,6 +47,7 @@ public class Servidor implements Serializable{
     //TCP
     private ServerSocket socketTCP=null;
     
+    
     Object receiveMSG,sendMSG;
     private boolean debug,Primario,Linked;
     
@@ -49,6 +55,7 @@ public class Servidor implements Serializable{
     {       
         group=InetAddress.getByName("225.15.15.15");
         packetUDP=new DatagramPacket(new byte[MAX_SIZE],MAX_SIZE);
+        file=new byte[MAX_SIZE];
         port=Porto;
         socketUDP = new MulticastSocket(port);
         socketUDP.joinGroup(group);
@@ -116,17 +123,18 @@ public class Servidor implements Serializable{
                                 Primario = true;
                             } else {
                                 ObjectInputStream recv = null;
+                                socketUDP.setSoTimeout(5000);
                                 socketUDP.receive(packetUDP);
                                 recv = new ObjectInputStream(new ByteArrayInputStream(packetUDP.getData()));
                                 Object msg = recv.readObject();
                                 if (msg instanceof Boolean) {
-                                    if (true == (Boolean) msg) {
+                                    if (true == (Boolean) msg && Primario==false) {
                                         Linked = true;
                                         socketTCP = new ServerSocket(socketUDP.getPort(), 0, socketUDP.getInetAddress());
-                                        //falta receber todos os dados do servidor primario
+                                        //receber todos os dados do servidor primario
+                                        
                                     }
                                 }
-                                Thread.sleep(5000);
                             }
                         }
                     } catch (NumberFormatException e) {
