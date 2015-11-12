@@ -174,7 +174,7 @@ public class Servidor implements Serializable{
                 }while(Linked);
             }         
         };
-        
+        //cenas
         TrataTCP = new Runnable() {
 
             @Override
