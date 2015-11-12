@@ -29,7 +29,7 @@ public class TrabalhoDePDServidor implements Serializable {
     /**
      * @param args the command line arguments
      */
-    public void main(String[] args) throws SocketException, IOException, UnknownHostException, InterruptedException {
+    public static void main(String[] args) throws SocketException, IOException, UnknownHostException, InterruptedException {
         // TODO code application logic here
         Servidor s=new Servidor("",7000);
     }

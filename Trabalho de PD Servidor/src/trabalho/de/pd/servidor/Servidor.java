@@ -216,10 +216,10 @@ public class Servidor implements Serializable{
                                             in.close();
                                         }
                                     }else{
-                                        if(msgrecebida instanceof Cliente)
+                                        /*if(msgrecebida instanceof Cliente)
                                         {
                                             
-                                        }
+                                        }*/
                                     }
                                 }
                             }
