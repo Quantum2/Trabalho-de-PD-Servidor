@@ -239,27 +239,9 @@ public class Servidor implements Serializable{
     
     public void começa() throws IOException,InterruptedException                      //nao sei usar o daemon, e nao sei como se fazia para istoo acabar so quando as threads acabarem
     {     
-        debug=true;
-        if(socketUDP==null)
-        {
-            return;
-        }       
-        if(debug)
-        {
-            System.out.println("UDP do server iniciado...");
-        }
-        
-        while(true)
-        {
-            /*receiveMSG=receive();    
-            if(receiveMSG==null)
-            {
-                continue;
-            }
-            */
-            //send();
-            Thread.sleep(5000);          
-        }
+        HeartbeatsEnvia.run();
+        HeartbeatsRecebe.run();
+        TrataTCP.run();
     }
     
     public void closeSocket() throws IOException
