@@ -7,6 +7,7 @@ package trabalho.de.pd.servidor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,7 +33,7 @@ import java.util.logging.Logger;
  * @author ASUS
  */
 public class Servidor implements Serializable{
-    public static final int MAX_SIZE=1000;
+    public static final int MAX_SIZE=256;
     public String diretoria=null;
     public InetAddress group;
     public int port;
@@ -41,7 +42,7 @@ public class Servidor implements Serializable{
     public FileInputStream recvFile=null;
     public FileOutputStream sendFile=null;
     public ObjectOutputStream sendobject=null;
-    public ObjectInputStream reiveobject=null;
+    public ObjectInputStream reciveobject=null;
     
     //threads
     public Runnable HeartbeatsEnvia=null;
@@ -177,26 +178,55 @@ public class Servidor implements Serializable{
                 do {
                     try {
                         if (Linked == true) {
-                            if (Primario == false) {
+                            if (Primario == false && Actualizado == false) {
                                 int tamanho;
                                 byte[] bytes = new byte[MAX_SIZE];
                                 InputStream in = null;
                                 OutputStream ou = null;
                                 in = SocketComSecundario.getInputStream();
                                 ou = new FileOutputStream(diretoria);
-                                while((tamanho=in.read(bytes))>0)
-                                {
-                                    ou.write(bytes);
+                                while ((tamanho = in.read(bytes)) > 0) {
+                                    ou.write(bytes, 0, tamanho);
                                 }
-                            }else{
-                                /*SocketComSecundario=socketTCP.accept();
-                                InputStream iss=SocketComSecundario.getInputStream();
-                                sendobject=new ObjectOutputStream(oss);
-                                sendobject.writeBoolean(Actualizado);
-                                sendobject.close();*/
+                                in.close();
+                                in.close();
+                                Actualizado = true;
+                            } else {
+                                if (Primario == true) {
+                                    SocketComSecundario = socketTCP.accept();
+                                    InputStream iss = SocketComSecundario.getInputStream();
+                                    reciveobject = new ObjectInputStream(iss);
+                                    Object msgrecebida = reciveobject.readObject();
+                                    if (msgrecebida instanceof Boolean) {
+                                        if ((Boolean) msgrecebida == false) {
+                                            File folder = new File(diretoria);
+                                            File[] ListadosFicheiros = folder.listFiles();
+                                            OutputStream ou = SocketComSecundario.getOutputStream();
+                                            InputStream in = null;
+                                            for (int i = 0; i < ListadosFicheiros.length; i++) {
+                                                long length = ListadosFicheiros[i].length();
+                                                byte[] bytes = new byte[MAX_SIZE];
+                                                in = new FileInputStream(ListadosFicheiros[i]);
+                                                int tamanho;
+                                                while ((tamanho = in.read(bytes)) > 0) {
+                                                    ou.write(bytes, 0, tamanho);
+                                                }
+                                            }
+                                            ou.close();
+                                            in.close();
+                                        }
+                                    }else{
+                                        if(msgrecebida instanceof Cliente)
+                                        {
+                                            
+                                        }
+                                    }
+                                }
                             }
                         }
                     } catch (IOException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (ClassNotFoundException ex) {
                         Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                     }
 
@@ -232,9 +262,11 @@ public class Servidor implements Serializable{
         }
     }
     
-    public void closeSocket()
+    public void closeSocket() throws IOException
     {
         if(socketUDP!=null)
             socketUDP.close();
+        if(socketTCP!=null)
+            socketTCP.close();
     }
 }
