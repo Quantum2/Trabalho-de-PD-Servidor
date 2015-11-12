@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -32,6 +33,7 @@ import java.util.logging.Logger;
  */
 public class Servidor implements Serializable{
     public static final int MAX_SIZE=1000;
+    public String diretoria=null;
     public InetAddress group;
     public int port;
     public int contador=0;
@@ -53,6 +55,7 @@ public class Servidor implements Serializable{
     //TCP
     private ServerSocket socketTCP=null;
     private Socket SocketComPrimario=null;
+    private Socket SocketComSecundario=null;
     
     private boolean debug,Primario,Linked,Actualizado;
     
@@ -61,6 +64,7 @@ public class Servidor implements Serializable{
         group=InetAddress.getByName("225.15.15.15");
         packetUDP=new DatagramPacket(new byte[MAX_SIZE],MAX_SIZE);
         file=new byte[MAX_SIZE];
+        this.diretoria=diretoria;
         port=Porto;
         socketUDP = new MulticastSocket(port);
         socketUDP.joinGroup(group);
@@ -166,9 +170,44 @@ public class Servidor implements Serializable{
             }         
         };
         
+        TrataTCP = new Runnable() {
+
+            @Override
+            public void run() {
+                do {
+                    try {
+                        if (Linked == true) {
+                            if (Primario == false) {
+                                int tamanho;
+                                byte[] bytes = new byte[MAX_SIZE];
+                                InputStream in = null;
+                                OutputStream ou = null;
+                                in = SocketComSecundario.getInputStream();
+                                ou = new FileOutputStream(diretoria);
+                                while((tamanho=in.read(bytes))>0)
+                                {
+                                    ou.write(bytes);
+                                }
+                            }else{
+                                /*SocketComSecundario=socketTCP.accept();
+                                InputStream iss=SocketComSecundario.getInputStream();
+                                sendobject=new ObjectOutputStream(oss);
+                                sendobject.writeBoolean(Actualizado);
+                                sendobject.close();*/
+                            }
+                        }
+                    } catch (IOException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+                } while (debug);
+            }
+
+        };
+        
     }
     
-    public void começa() throws IOException,InterruptedException
+    public void começa() throws IOException,InterruptedException                      //nao sei usar o daemon, e nao sei como se fazia para istoo acabar so quando as threads acabarem
     {     
         debug=true;
         if(socketUDP==null)
