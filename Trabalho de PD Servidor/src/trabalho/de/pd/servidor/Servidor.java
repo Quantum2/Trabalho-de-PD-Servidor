@@ -74,6 +74,8 @@ public class Servidor implements Serializable{
         Actualizado=false;
         debug=true;
         
+        System.out.println("Servidor a correr....");
+        
         try{
             constroiThreads();
             começa();
@@ -96,6 +98,7 @@ public class Servidor implements Serializable{
         HeartbeatsEnvia = new Runnable() {
             @Override
             public void run() {
+                System.out.println("Thread HearbeatEnvia a correr.....");
                 do {
                     try {
                         if(Linked==true || Primario==true)
@@ -127,6 +130,7 @@ public class Servidor implements Serializable{
 
             @Override
             public void run() {
+                System.out.println("Thread HeartbeatsRecebe a correr...");
                 do{                  
                     try {
                         if (Linked == false && Primario == false) {
@@ -175,6 +179,7 @@ public class Servidor implements Serializable{
 
             @Override
             public void run() {
+                System.out.println("Thread TrataTCP a correr...");
                 do {
                     try {
                         if (Linked == true) {
@@ -239,13 +244,24 @@ public class Servidor implements Serializable{
     
     public void começa() throws IOException,InterruptedException                      //nao sei usar o daemon, e nao sei como se fazia para istoo acabar so quando as threads acabarem
     {     
-        HeartbeatsEnvia.run();
-        HeartbeatsRecebe.run();
-        TrataTCP.run();
+        
+        Thread t1=new Thread(HeartbeatsEnvia);        
+        Thread t2=new Thread(HeartbeatsRecebe);
+        Thread t3=new Thread(TrataTCP);
+        System.out.println("Threads Criadas....");
+        t1.start();
+        t2.start();
+        t3.start();
+        while(t1.isAlive() && t2.isAlive() && t3.isAlive())
+        {
+            
+        }
+        
     }
     
     public void closeSocket() throws IOException
     {
+        System.out.println("Acabou!!!");
         if(socketUDP!=null)
             socketUDP.close();
         if(socketTCP!=null)
