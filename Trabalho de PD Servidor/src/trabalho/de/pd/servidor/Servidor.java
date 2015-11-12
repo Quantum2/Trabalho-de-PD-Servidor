@@ -12,12 +12,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
@@ -35,10 +38,13 @@ public class Servidor implements Serializable{
     public byte []file=null;
     public FileInputStream recvFile=null;
     public FileOutputStream sendFile=null;
+    public ObjectOutputStream sendobject=null;
+    public ObjectInputStream reiveobject=null;
     
     //threads
     public Runnable HeartbeatsEnvia=null;
     public Runnable HeartbeatsRecebe=null;
+    public Runnable TrataTCP=null;
     
     //UDP
     protected MulticastSocket socketUDP=null;
@@ -46,10 +52,9 @@ public class Servidor implements Serializable{
     
     //TCP
     private ServerSocket socketTCP=null;
+    private Socket SocketComPrimario=null;
     
-    
-    Object receiveMSG,sendMSG;
-    private boolean debug,Primario,Linked;
+    private boolean debug,Primario,Linked,Actualizado;
     
     public Servidor(String diretoria,int Porto) throws UnknownHostException, IOException, InterruptedException 
     {       
@@ -61,6 +66,7 @@ public class Servidor implements Serializable{
         socketUDP.joinGroup(group);
         Primario=false;
         Linked=false;
+        Actualizado=false;
         debug=true;
         
         try{
@@ -132,7 +138,11 @@ public class Servidor implements Serializable{
                                         Linked = true;
                                         socketTCP = new ServerSocket(socketUDP.getPort(), 0, socketUDP.getInetAddress());
                                         //receber todos os dados do servidor primario
-                                        
+                                        SocketComPrimario=socketTCP.accept();
+                                        OutputStream oss=SocketComPrimario.getOutputStream();
+                                        sendobject=new ObjectOutputStream(oss);
+                                        sendobject.writeBoolean(Actualizado);
+                                        sendobject.close();
                                     }
                                 }
                             }
@@ -144,8 +154,6 @@ public class Servidor implements Serializable{
                     } catch (IOException e) {
                         System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
                     } catch (ClassNotFoundException ex) {
-                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (InterruptedException ex) {
                         Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                     } finally {
                         if(Linked==false && Primario==false)
