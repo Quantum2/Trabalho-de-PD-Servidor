@@ -10,5 +10,7 @@ package trabalho.de.pd.servidor;
  * @author ASUS
  */
 public class Cliente {
-    
+    Boolean download=false;
+    Boolean Upload=false;
+    Boolean Ver=false;
 }

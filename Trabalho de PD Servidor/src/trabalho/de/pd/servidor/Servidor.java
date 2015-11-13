@@ -24,6 +24,7 @@ import java.net.MulticastSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,8 +52,9 @@ public class Servidor implements Serializable{
     
     //UDP
     protected MulticastSocket socketUDP=null;
-    private DatagramPacket packetUDP=null;
-    
+    private DatagramPacket SendpacketUDP=null;
+    private DatagramPacket RecvpacketUDP=null;
+    private DatagramSocket SocketComDiretoria=null;
     //TCP
     private ServerSocket socketTCP=null;
     private Socket SocketComPrimario=null;
@@ -61,21 +63,40 @@ public class Servidor implements Serializable{
     private boolean debug,Primario,Linked,Actualizado;
     
     public Servidor(String diretoria,int Porto) throws UnknownHostException, IOException, InterruptedException 
-    {       
-        group=InetAddress.getByName("225.15.15.15");
-        packetUDP=new DatagramPacket(new byte[MAX_SIZE],MAX_SIZE);
-        file=new byte[MAX_SIZE];
-        this.diretoria=diretoria;
+    {      
         port=Porto;
+        this.diretoria=diretoria;
+        
+        //UDP
+        group=InetAddress.getByName("225.15.15.15");
+        SendpacketUDP=new DatagramPacket(new byte[MAX_SIZE],MAX_SIZE,group,port);
+        RecvpacketUDP=new DatagramPacket(new byte[MAX_SIZE],MAX_SIZE,group,port);
+        SocketComDiretoria=new DatagramSocket();
         socketUDP = new MulticastSocket(port);
         socketUDP.joinGroup(group);
+        
+        //ainda nao utilizado
+        file=new byte[MAX_SIZE];      
+        
+        //boolean
         Primario=false;
         Linked=false;
         Actualizado=false;
         debug=true;
         
+        /*ByteArrayOutputStream byteout = new ByteArrayOutputStream(MAX_SIZE);
+        ObjectOutputStream send = new ObjectOutputStream(byteout);
+        send.writeObject(Primario);
+        SocketComDiretoria=new DatagramSocket();
+        packetUDP.setData(byteout.toByteArray());
+        packetUDP.setLength(byteout.size());
+        SocketComDiretoria.send(packetUDP);*/
+        
         System.out.println("Servidor a correr....");
         
+        
+        
+        //socketUDP.send(packetUDP);
         try{
             constroiThreads();
             começa();
@@ -106,9 +127,10 @@ public class Servidor implements Serializable{
                             ByteArrayOutputStream byteout = new ByteArrayOutputStream(MAX_SIZE);
                             ObjectOutputStream send = new ObjectOutputStream(byteout);
                             send.writeObject(Primario);
-                            packetUDP.setData(byteout.toByteArray());
-                            packetUDP.setLength(byteout.size());
-                            socketUDP.send(packetUDP);
+                            SendpacketUDP.setData(byteout.toByteArray());
+                            SendpacketUDP.setLength(byteout.size());
+                            //SocketComDiretoria.send(packetUDP); //teste
+                            socketUDP.send(SendpacketUDP);
                             Thread.sleep(5000);
                         }
                     } catch (NumberFormatException e) {
@@ -123,10 +145,11 @@ public class Servidor implements Serializable{
                         
                     }                   
                 } while (debug);
+                System.out.println("Acabou HeartbeatsEnvia...");
             }
         };
         
-        HeartbeatsRecebe = new Runnable(){
+        HeartbeatsRecebe = new Runnable(){    //esta aqui a dar erro
 
             @Override
             public void run() {
@@ -139,20 +162,15 @@ public class Servidor implements Serializable{
                             } else {
                                 ObjectInputStream recv = null;
                                 socketUDP.setSoTimeout(5000);
-                                socketUDP.receive(packetUDP);
-                                recv = new ObjectInputStream(new ByteArrayInputStream(packetUDP.getData()));
+                                socketUDP.receive(RecvpacketUDP);
+                                
+                                recv = new ObjectInputStream(new ByteArrayInputStream(RecvpacketUDP.getData()));
                                 Object msg = recv.readObject();
                                 if (msg instanceof Boolean) {
                                     if (true == (Boolean) msg && Primario==false) {
-                                        Linked = true;
-                                        socketTCP = new ServerSocket(socketUDP.getPort(), 0, socketUDP.getInetAddress());
-                                        //receber todos os dados do servidor primario
-                                        SocketComPrimario=socketTCP.accept();
-                                        OutputStream oss=SocketComPrimario.getOutputStream();
-                                        sendobject=new ObjectOutputStream(oss);
-                                        sendobject.writeBoolean(Actualizado);
-                                        sendobject.close();
-                                    }
+                                        Linked = true;                                       
+                                        socketTCP = new ServerSocket(RecvpacketUDP.getPort(), 0, RecvpacketUDP.getAddress());
+                                    }//falta condicao para ver se existir mais do que 1 primario entao escolhe se o que tiver menor ip
                                 }
                             }
                         }
@@ -160,6 +178,7 @@ public class Servidor implements Serializable{
                         System.out.println("O porto de escuta deve ser um inteiro positivo.");
                     } catch (SocketException e) {
                         System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
+                    }   catch (SocketTimeoutException e) {
                     } catch (IOException e) {
                         System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
                     } catch (ClassNotFoundException ex) {
@@ -171,19 +190,24 @@ public class Servidor implements Serializable{
                             contador=0;
                         }
                     }
-                }while(Linked);
+                }while(debug);
+                System.out.println("Acabou HearbeatsRecebe...");
             }         
         };
-        //cenas
-        TrataTCP = new Runnable() {
+        
+        TrataTCP = new Runnable() {  //tem que se por estas coisas em Slaves
 
             @Override
             public void run() {
                 System.out.println("Thread TrataTCP a correr...");
                 do {
                     try {
-                        if (Linked == true) {
+                        if (Linked == true || Primario==true) {
                             if (Primario == false && Actualizado == false) {
+                                OutputStream oss=SocketComPrimario.getOutputStream();
+                                sendobject=new ObjectOutputStream(oss);
+                                sendobject.writeBoolean(Actualizado);
+                                sendobject.close();
                                 int tamanho;
                                 byte[] bytes = new byte[MAX_SIZE];
                                 InputStream in = null;
@@ -193,7 +217,7 @@ public class Servidor implements Serializable{
                                 while ((tamanho = in.read(bytes)) > 0) {
                                     ou.write(bytes, 0, tamanho);
                                 }
-                                in.close();
+                                ou.close();
                                 in.close();
                                 Actualizado = true;
                             } else {
@@ -221,10 +245,52 @@ public class Servidor implements Serializable{
                                             in.close();
                                         }
                                     }else{
-                                        /*if(msgrecebida instanceof Cliente)
+                                        if(msgrecebida instanceof Cliente)     //nao esquecer mudar para socketcomcliente
                                         {
-                                            
-                                        }*/
+                                            Cliente c=(Cliente)msgrecebida;
+                                            if(c.download==true)
+                                            {
+                                                File folder = new File(diretoria);
+                                                File[] ListadosFicheiros = folder.listFiles();
+                                                OutputStream ou = SocketComSecundario.getOutputStream();
+                                                InputStream in = null;
+                                                for (int i = 0; i < ListadosFicheiros.length; i++) {
+                                                    long length = ListadosFicheiros[i].length();
+                                                    byte[] bytes = new byte[MAX_SIZE];
+                                                    in = new FileInputStream(ListadosFicheiros[i]);
+                                                    int tamanho;
+                                                    while ((tamanho = in.read(bytes)) > 0) {
+                                                        ou.write(bytes, 0, tamanho);
+                                                    }
+                                                }
+                                                ou.close();
+                                                in.close();
+                                            }
+                                            if(c.Upload==true)
+                                            {
+                                                int tamanho;
+                                                byte[] bytes = new byte[MAX_SIZE];
+                                                InputStream in = null;
+                                                OutputStream ou = null;
+                                                in = SocketComSecundario.getInputStream();
+                                                ou = new FileOutputStream(diretoria);
+                                                while ((tamanho = in.read(bytes)) > 0) {
+                                                    ou.write(bytes, 0, tamanho);
+                                                }
+                                                ou.close();
+                                                in.close();
+                                            }
+                                            if(c.Ver==true)  //acho que estou a mandar todos os ficheiros num object e nao o nome deles-boa ideia para os ocdigos anteriores se funcionar
+                                            {
+                                                int tamanho;
+                                                File folder = new File(diretoria);
+                                                File[] ListadosFicheiros = folder.listFiles();
+                                                OutputStream oss=SocketComSecundario.getOutputStream();
+                                                ObjectOutputStream sendcliente=new ObjectOutputStream(oss);
+                                                sendcliente.writeObject(ListadosFicheiros);
+                                                sendcliente.close();
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -236,6 +302,7 @@ public class Servidor implements Serializable{
                     }
 
                 } while (debug);
+                System.out.println("Acabou TrataTCP...");
             }
 
         };
@@ -252,7 +319,7 @@ public class Servidor implements Serializable{
         t1.start();
         t2.start();
         t3.start();
-        while(t1.isAlive() && t2.isAlive() && t3.isAlive())
+        while(t1.isAlive() || t2.isAlive() || t3.isAlive())
         {
             
         }
