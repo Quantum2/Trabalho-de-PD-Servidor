@@ -83,20 +83,8 @@ public class Servidor implements Serializable{
         Linked=false;
         Actualizado=false;
         debug=true;
-        
-        /*ByteArrayOutputStream byteout = new ByteArrayOutputStream(MAX_SIZE);
-        ObjectOutputStream send = new ObjectOutputStream(byteout);
-        send.writeObject(Primario);
-        SocketComDiretoria=new DatagramSocket();
-        packetUDP.setData(byteout.toByteArray());
-        packetUDP.setLength(byteout.size());
-        SocketComDiretoria.send(packetUDP);*/
-        
         System.out.println("Servidor a correr....");
         
-        
-        
-        //socketUDP.send(packetUDP);
         try{
             constroiThreads();
             começa();
@@ -114,88 +102,8 @@ public class Servidor implements Serializable{
     }
     
     public void constroiThreads() throws IOException,InterruptedException
-    {
-        //Socket toClientSocket;
-        HeartbeatsEnvia = new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("Thread HearbeatEnvia a correr.....");
-                do {
-                    try {
-                        if(Linked==true || Primario==true)
-                        {
-                            ByteArrayOutputStream byteout = new ByteArrayOutputStream(MAX_SIZE);
-                            ObjectOutputStream send = new ObjectOutputStream(byteout);
-                            send.writeObject(Primario);
-                            SendpacketUDP.setData(byteout.toByteArray());
-                            SendpacketUDP.setLength(byteout.size());
-                            //SocketComDiretoria.send(packetUDP); //teste
-                            socketUDP.send(SendpacketUDP);
-                            Thread.sleep(5000);
-                        }
-                    } catch (NumberFormatException e) {
-                        System.out.println("O porto de escuta deve ser um inteiro positivo.");
-                    } catch (SocketException e) {
-                        System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
-                    } catch (IOException e) {
-                        System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
-                    } catch (InterruptedException e) {
-                        System.out.println("Ocorreu um erro no sleep");
-                    } finally {
-                        
-                    }                   
-                } while (debug);
-                System.out.println("Acabou HeartbeatsEnvia...");
-            }
-        };
-        
-        HeartbeatsRecebe = new Runnable(){    //esta aqui a dar erro
-
-            @Override
-            public void run() {
-                System.out.println("Thread HeartbeatsRecebe a correr...");
-                do{                  
-                    try {
-                        if (Linked == false && Primario == false) {
-                            if (contador == 3) {
-                                Primario = true;
-                            } else {
-                                ObjectInputStream recv = null;
-                                socketUDP.setSoTimeout(5000);
-                                socketUDP.receive(RecvpacketUDP);
-                                
-                                recv = new ObjectInputStream(new ByteArrayInputStream(RecvpacketUDP.getData()));
-                                Object msg = recv.readObject();
-                                if (msg instanceof Boolean) {
-                                    if (true == (Boolean) msg && Primario==false) {
-                                        Linked = true;                                       
-                                        socketTCP = new ServerSocket(RecvpacketUDP.getPort(), 0, RecvpacketUDP.getAddress());
-                                    }//falta condicao para ver se existir mais do que 1 primario entao escolhe se o que tiver menor ip
-                                }
-                            }
-                        }
-                    } catch (NumberFormatException e) {
-                        System.out.println("O porto de escuta deve ser um inteiro positivo.");
-                    } catch (SocketException e) {
-                        System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
-                    }   catch (SocketTimeoutException e) {
-                    } catch (IOException e) {
-                        System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
-                    } catch (ClassNotFoundException ex) {
-                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                    } finally {
-                        if(Linked==false && Primario==false)
-                            contador++;
-                        else{
-                            contador=0;
-                        }
-                    }
-                }while(debug);
-                System.out.println("Acabou HearbeatsRecebe...");
-            }         
-        };
-        
-        TrataTCP = new Runnable() {  //tem que se por estas coisas em Slaves
+    {               
+        /*TrataTCP = new Runnable() {  //tem que se por estas coisas em Slaves// depois trato disto
 
             @Override
             public void run() {
@@ -305,7 +213,7 @@ public class Servidor implements Serializable{
                 System.out.println("Acabou TrataTCP...");
             }
 
-        };
+        };*/
         
     }
     
