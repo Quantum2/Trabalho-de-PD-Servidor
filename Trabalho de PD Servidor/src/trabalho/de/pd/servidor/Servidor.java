@@ -46,9 +46,8 @@ public class Servidor implements Serializable{
     public ObjectInputStream reciveobject=null;
     
     //threads
-    public Runnable HeartbeatsEnvia=null;
-    public Runnable HeartbeatsRecebe=null;
-    public Runnable TrataTCP=null;
+    public HeartbeatsRecebe heartRECV=null;
+    public HeartbeatsEnvia heartENVIA=null;
     
     //UDP
     protected MulticastSocket socketUDP=null;
@@ -217,21 +216,20 @@ public class Servidor implements Serializable{
         
     }
     
-    public void começa() throws IOException,InterruptedException                      //nao sei usar o daemon, e nao sei como se fazia para istoo acabar so quando as threads acabarem
-    {     
-        
-        Thread t1=new Thread(HeartbeatsEnvia);        
-        Thread t2=new Thread(HeartbeatsRecebe);
-        Thread t3=new Thread(TrataTCP);
-        System.out.println("Threads Criadas....");
-        t1.start();
-        t2.start();
-        t3.start();
-        while(t1.isAlive() || t2.isAlive() || t3.isAlive())
-        {
+    public void começa() throws IOException, InterruptedException //nao sei usar o daemon, e nao sei como se fazia para istoo acabar so quando as threads acabarem
+    {
+        do {
+            heartRECV = new HeartbeatsRecebe(socketUDP, RecvpacketUDP);
+            heartRECV.start();
+
+            while (heartRECV.isAlive() == true || heartRECV.running == true) {
+
+            }
+
+            heartENVIA = new HeartbeatsEnvia(SendpacketUDP,heartRECV.getPrimario());
+            heartENVIA.start();
             
-        }
-        
+        } while (debug);
     }
     
     public void closeSocket() throws IOException
