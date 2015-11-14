@@ -5,36 +5,53 @@
  */
 package trabalho.de.pd.servidor;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static trabalho.de.pd.servidor.RecebeActualizacaoTCP.MAX_SIZE;
 
 /**
  *
  * @author ASUS
  */
-public class EnviaActualizacaoOURespostaClienteTCP extends Thread{   //se recebe um boolean do tipo falso, comunica com o secundario e manda actualizacao.
-                                                    //se for verdadeiro, comunica com um cliente e responde.
-    private Socket EnviaSocketTCP=null;
-    
-    public EnviaActualizacaoOURespostaClienteTCP()
-    {
-        
+public class EnviaActualizacaoOURespostaClienteTCP extends Thread {   //se recebe um boolean do tipo falso, comunica com o secundario e manda actualizacao.
+    //se for verdadeiro, comunica com um cliente e responde.
+
+    private Socket Socket = null;
+    boolean running = false;
+    public String Diretoria = null;
+    public ObjectInputStream recvobject = null;
+    public static final int MAX_SIZE = 256;
+
+    public EnviaActualizacaoOURespostaClienteTCP(Socket sockettcp, String diretoria) {
+        this.Socket = sockettcp;
+        running = true;
+        this.Diretoria = diretoria;
     }
-    
+
     @Override
     public void run() {
-        if (Primario == true) {
-            SocketComSecundario = socketTCP.accept();
-            InputStream iss = SocketComSecundario.getInputStream();
-            reciveobject = new ObjectInputStream(iss);
-            Object msgrecebida = reciveobject.readObject();
+        try {
+            InputStream iss = Socket.getInputStream();
+            recvobject = new ObjectInputStream(iss);
+            Object msgrecebida = recvobject.readObject();
+            iss.close();
             if (msgrecebida instanceof Boolean) {
                 if ((Boolean) msgrecebida == false) {
-                    File folder = new File(diretoria);
+                    File folder = new File(Diretoria);
                     File[] ListadosFicheiros = folder.listFiles();
-                    OutputStream ou = SocketComSecundario.getOutputStream();
+                    OutputStream ou = Socket.getOutputStream();
                     InputStream in = null;
                     for (int i = 0; i < ListadosFicheiros.length; i++) {
-                        long length = ListadosFicheiros[i].length();
                         byte[] bytes = new byte[MAX_SIZE];
                         in = new FileInputStream(ListadosFicheiros[i]);
                         int tamanho;
@@ -44,53 +61,69 @@ public class EnviaActualizacaoOURespostaClienteTCP extends Thread{   //se recebe
                     }
                     ou.close();
                     in.close();
-                }
-            } else {
-                if (msgrecebida instanceof Cliente) //nao esquecer mudar para socketcomcliente
-                {
-                    Cliente c = (Cliente) msgrecebida;
-                    if (c.download == true) {
-                        File folder = new File(diretoria);
-                        File[] ListadosFicheiros = folder.listFiles();
-                        OutputStream ou = SocketComSecundario.getOutputStream();
-                        InputStream in = null;
-                        for (int i = 0; i < ListadosFicheiros.length; i++) {
-                            long length = ListadosFicheiros[i].length();
-                            byte[] bytes = new byte[MAX_SIZE];
-                            in = new FileInputStream(ListadosFicheiros[i]);
+                } else {
+                    if (msgrecebida instanceof Cliente) //nao esquecer mudar para socketcomcliente
+                    {
+                        Cliente c = (Cliente) msgrecebida;
+                        if (c.download == true) {
+                            File folder = new File(Diretoria);
+                            File[] ListadosFicheiros = folder.listFiles();
+                            OutputStream ou = Socket.getOutputStream();
+                            InputStream in = null;
+                            for (int i = 0; i < ListadosFicheiros.length; i++) {
+                                byte[] bytes = new byte[MAX_SIZE];
+                                in = new FileInputStream(ListadosFicheiros[i]);
+                                int tamanho;
+                                while ((tamanho = in.read(bytes)) > 0) {
+                                    ou.write(bytes, 0, tamanho);
+                                }
+                            }
+                            ou.close();
+                            in.close();
+                        }
+                        if (c.Upload == true) {
                             int tamanho;
+                            byte[] bytes = new byte[MAX_SIZE];
+                            InputStream in = null;
+                            OutputStream ou = null;
+                            in = Socket.getInputStream();
+                            ou = new FileOutputStream(Diretoria);
                             while ((tamanho = in.read(bytes)) > 0) {
                                 ou.write(bytes, 0, tamanho);
                             }
+                            ou.close();
+                            in.close();
                         }
-                        ou.close();
-                        in.close();
-                    }
-                    if (c.Upload == true) {
-                        int tamanho;
-                        byte[] bytes = new byte[MAX_SIZE];
-                        InputStream in = null;
-                        OutputStream ou = null;
-                        in = SocketComSecundario.getInputStream();
-                        ou = new FileOutputStream(diretoria);
-                        while ((tamanho = in.read(bytes)) > 0) {
-                            ou.write(bytes, 0, tamanho);
+                        if (c.Ver == true)
+                        {
+                            int tamanho;
+                            File folder = new File(Diretoria);
+                            File[] ListadosFicheiros = folder.listFiles();
+                            ArrayList<String> NomesFicheiros=new ArrayList<String>();
+                            for(int i=0;i<ListadosFicheiros.length;i++)
+                            {
+                                NomesFicheiros.add(ListadosFicheiros[i].getName());
+                            }
+                            OutputStream oss = Socket.getOutputStream();
+                            ObjectOutputStream sendcliente = new ObjectOutputStream(oss);
+                            sendcliente.writeObject(NomesFicheiros);
+                            sendcliente.close();
+                            
+                            /*int tamanho;
+                            File folder = new File(Diretoria);     
+                            File[] ListadosFicheiros = folder.listFiles();                       //talvez uma maneira mais facil de mandar todos os ficheiros
+                            OutputStream oss = SocketComSecundario.getOutputStream();
+                            ObjectOutputStream sendcliente = new ObjectOutputStream(oss);
+                            sendcliente.writeObject(ListadosFicheiros);
+                            sendcliente.close();*/
                         }
-                        ou.close();
-                        in.close();
-                    }
-                    if (c.Ver == true) //acho que estou a mandar todos os ficheiros num object e nao o nome deles-boa ideia para os ocdigos anteriores se funcionar
-                    {
-                        int tamanho;
-                        File folder = new File(diretoria);
-                        File[] ListadosFicheiros = folder.listFiles();
-                        OutputStream oss = SocketComSecundario.getOutputStream();
-                        ObjectOutputStream sendcliente = new ObjectOutputStream(oss);
-                        sendcliente.writeObject(ListadosFicheiros);
-                        sendcliente.close();
                     }
                 }
             }
+        } catch (IOException ex) {
+            Logger.getLogger(EnviaActualizacaoOURespostaClienteTCP.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(EnviaActualizacaoOURespostaClienteTCP.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
