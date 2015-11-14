@@ -5,11 +5,13 @@
  */
 package trabalho.de.pd.servidor;
 
+import java.io.Serializable;
+
 /**
  *
  * @author ASUS
  */
-public class Cliente {
+public class Cliente implements Serializable{
     Boolean download=false;
     Boolean Upload=false;
     Boolean Ver=false;

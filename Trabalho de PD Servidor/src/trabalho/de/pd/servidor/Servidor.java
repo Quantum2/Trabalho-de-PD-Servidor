@@ -48,16 +48,18 @@ public class Servidor implements Serializable{
     //threads
     public HeartbeatsRecebe heartRECV=null;
     public HeartbeatsEnvia heartENVIA=null;
+    public RecebeActualizacaoTCP RcActualizacaoTCP=null;
     
     //UDP
     protected MulticastSocket socketUDP=null;
     private DatagramPacket SendpacketUDP=null;
     private DatagramPacket RecvpacketUDP=null;
     private DatagramSocket SocketComDiretoria=null;
+    
     //TCP
     private ServerSocket socketTCP=null;
-    private Socket SocketComPrimario=null;
-    private Socket SocketComSecundario=null;
+    private Socket EnviaSocketTCP=null;
+    private Socket RecebeSocketTCP=null;
     
     private boolean debug,Primario,Linked,Actualizado;
     
@@ -82,10 +84,10 @@ public class Servidor implements Serializable{
         Linked=false;
         Actualizado=false;
         debug=true;
+        
         System.out.println("Servidor a correr....");
         
         try{
-            constroiThreads();
             começa();
         }catch(NumberFormatException e){
             System.out.println("O porto de escuta deve ser um inteiro positivo.");
@@ -98,122 +100,6 @@ public class Servidor implements Serializable{
         }finally{
                 closeSocket();
         }
-    }
-    
-    public void constroiThreads() throws IOException,InterruptedException
-    {               
-        /*TrataTCP = new Runnable() {  //tem que se por estas coisas em Slaves// depois trato disto
-
-            @Override
-            public void run() {
-                System.out.println("Thread TrataTCP a correr...");
-                do {
-                    try {
-                        if (Linked == true || Primario==true) {
-                            if (Primario == false && Actualizado == false) {
-                                OutputStream oss=SocketComPrimario.getOutputStream();
-                                sendobject=new ObjectOutputStream(oss);
-                                sendobject.writeBoolean(Actualizado);
-                                sendobject.close();
-                                int tamanho;
-                                byte[] bytes = new byte[MAX_SIZE];
-                                InputStream in = null;
-                                OutputStream ou = null;
-                                in = SocketComSecundario.getInputStream();
-                                ou = new FileOutputStream(diretoria);
-                                while ((tamanho = in.read(bytes)) > 0) {
-                                    ou.write(bytes, 0, tamanho);
-                                }
-                                ou.close();
-                                in.close();
-                                Actualizado = true;
-                            } else {
-                                if (Primario == true) {
-                                    SocketComSecundario = socketTCP.accept();
-                                    InputStream iss = SocketComSecundario.getInputStream();
-                                    reciveobject = new ObjectInputStream(iss);
-                                    Object msgrecebida = reciveobject.readObject();
-                                    if (msgrecebida instanceof Boolean) {
-                                        if ((Boolean) msgrecebida == false) {
-                                            File folder = new File(diretoria);
-                                            File[] ListadosFicheiros = folder.listFiles();
-                                            OutputStream ou = SocketComSecundario.getOutputStream();
-                                            InputStream in = null;
-                                            for (int i = 0; i < ListadosFicheiros.length; i++) {
-                                                long length = ListadosFicheiros[i].length();
-                                                byte[] bytes = new byte[MAX_SIZE];
-                                                in = new FileInputStream(ListadosFicheiros[i]);
-                                                int tamanho;
-                                                while ((tamanho = in.read(bytes)) > 0) {
-                                                    ou.write(bytes, 0, tamanho);
-                                                }
-                                            }
-                                            ou.close();
-                                            in.close();
-                                        }
-                                    }else{
-                                        if(msgrecebida instanceof Cliente)     //nao esquecer mudar para socketcomcliente
-                                        {
-                                            Cliente c=(Cliente)msgrecebida;
-                                            if(c.download==true)
-                                            {
-                                                File folder = new File(diretoria);
-                                                File[] ListadosFicheiros = folder.listFiles();
-                                                OutputStream ou = SocketComSecundario.getOutputStream();
-                                                InputStream in = null;
-                                                for (int i = 0; i < ListadosFicheiros.length; i++) {
-                                                    long length = ListadosFicheiros[i].length();
-                                                    byte[] bytes = new byte[MAX_SIZE];
-                                                    in = new FileInputStream(ListadosFicheiros[i]);
-                                                    int tamanho;
-                                                    while ((tamanho = in.read(bytes)) > 0) {
-                                                        ou.write(bytes, 0, tamanho);
-                                                    }
-                                                }
-                                                ou.close();
-                                                in.close();
-                                            }
-                                            if(c.Upload==true)
-                                            {
-                                                int tamanho;
-                                                byte[] bytes = new byte[MAX_SIZE];
-                                                InputStream in = null;
-                                                OutputStream ou = null;
-                                                in = SocketComSecundario.getInputStream();
-                                                ou = new FileOutputStream(diretoria);
-                                                while ((tamanho = in.read(bytes)) > 0) {
-                                                    ou.write(bytes, 0, tamanho);
-                                                }
-                                                ou.close();
-                                                in.close();
-                                            }
-                                            if(c.Ver==true)  //acho que estou a mandar todos os ficheiros num object e nao o nome deles-boa ideia para os ocdigos anteriores se funcionar
-                                            {
-                                                int tamanho;
-                                                File folder = new File(diretoria);
-                                                File[] ListadosFicheiros = folder.listFiles();
-                                                OutputStream oss=SocketComSecundario.getOutputStream();
-                                                ObjectOutputStream sendcliente=new ObjectOutputStream(oss);
-                                                sendcliente.writeObject(ListadosFicheiros);
-                                                sendcliente.close();
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } catch (IOException ex) {
-                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (ClassNotFoundException ex) {
-                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-
-                } while (debug);
-                System.out.println("Acabou TrataTCP...");
-            }
-
-        };*/
-        
     }
     
     public void começa() throws IOException, InterruptedException //nao sei usar o daemon, e nao sei como se fazia para istoo acabar so quando as threads acabarem
@@ -229,6 +115,15 @@ public class Servidor implements Serializable{
             heartENVIA = new HeartbeatsEnvia(SendpacketUDP,heartRECV.getPrimario());
             heartENVIA.start();
             
+            if(heartRECV.getPrimario()==false)
+            {
+                RcActualizacaoTCP=new RecebeActualizacaoTCP(heartRECV.getIpPrimario(),heartRECV.getPortoPrimario(),diretoria);
+                RcActualizacaoTCP.start();
+            }else{
+                do{
+                    
+                }while(debug);
+            }
         } while (debug);
     }
     
