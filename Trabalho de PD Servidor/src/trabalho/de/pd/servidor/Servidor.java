@@ -49,6 +49,7 @@ public class Servidor implements Serializable{
     public HeartbeatsRecebe heartRECV=null;
     public HeartbeatsEnvia heartENVIA=null;
     public RecebeActualizacaoTCP RcActualizacaoTCP=null;
+    public EnviaActualizacaoOURespostaClienteTCP EnviaRespostaTCP=null;
     
     //UDP
     protected MulticastSocket socketUDP=null;
@@ -57,9 +58,8 @@ public class Servidor implements Serializable{
     private DatagramSocket SocketComDiretoria=null;
     
     //TCP
-    private ServerSocket socketTCP=null;
-    private Socket EnviaSocketTCP=null;
-    private Socket RecebeSocketTCP=null;
+    private ServerSocket serversocketTCP=null;
+    private Socket SocketTCP=null;
     
     private boolean debug,Primario,Linked,Actualizado;
     
@@ -105,10 +105,10 @@ public class Servidor implements Serializable{
     public void começa() throws IOException, InterruptedException //nao sei usar o daemon, e nao sei como se fazia para istoo acabar so quando as threads acabarem
     {
         do {
-            heartRECV = new HeartbeatsRecebe(socketUDP, RecvpacketUDP);
+            heartRECV = new HeartbeatsRecebe(socketUDP, RecvpacketUDP);     //fazer esperar as threads
             heartRECV.start();
 
-            while (heartRECV.isAlive() == true || heartRECV.running == true) {
+            while (heartRECV.running == true) {
 
             }
 
@@ -121,7 +121,8 @@ public class Servidor implements Serializable{
                 RcActualizacaoTCP.start();
             }else{
                 do{
-                    
+                    SocketTCP = serversocketTCP.accept();
+                    EnviaRespostaTCP=new EnviaActualizacaoOURespostaClienteTCP(SocketTCP,diretoria);
                 }while(debug);
             }
         } while (debug);
@@ -132,7 +133,5 @@ public class Servidor implements Serializable{
         System.out.println("Acabou!!!");
         if(socketUDP!=null)
             socketUDP.close();
-        if(socketTCP!=null)
-            socketTCP.close();
     }
 }
