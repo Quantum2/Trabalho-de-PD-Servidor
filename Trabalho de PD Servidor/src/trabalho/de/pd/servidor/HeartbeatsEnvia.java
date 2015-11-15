@@ -41,14 +41,17 @@ public class HeartbeatsEnvia extends Thread {
         System.out.println("Thread HearbeatEnvia a correr.....");
         do {
             try {
-                ByteArrayOutputStream byteout = new ByteArrayOutputStream(MAX_SIZE);
+                ByteArrayOutputStream byteout = new ByteArrayOutputStream();
                 ObjectOutputStream send = new ObjectOutputStream(byteout);
                 send.writeObject(Primario);
+                send.flush();
+                send.close();
+                
+                byte[] barray=byteout.toByteArray();
                 packet.setData(byteout.toByteArray());
                 packet.setLength(byteout.size());
                 SocketComDiretoria.send(packet); //teste
                 System.out.println("Envia heartbeat...");
-                //socketUDP.send(SendpacketUDP);
                 Thread.sleep(5000);
             } catch (NumberFormatException e) {
                 System.out.println("O porto de escuta deve ser um inteiro positivo.");
