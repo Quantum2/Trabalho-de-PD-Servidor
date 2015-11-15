@@ -62,8 +62,8 @@ public class HeartbeatsRecebe extends Thread {
                 ObjectInputStream recv = null;
                 socket.setSoTimeout(5);
                 socket.receive(packet);
-                recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData()));
-                Object msg = recv.readObject();
+                recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(),0,packet.getLength()));
+                Object msg =(Object) recv.readObject();
                 if (msg instanceof Boolean) {
                     if (true == (Boolean) msg && Primario == false) {
                         IpPrimario = packet.getAddress();

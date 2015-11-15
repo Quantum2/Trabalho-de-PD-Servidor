@@ -34,7 +34,7 @@ import java.util.logging.Logger;
  * @author ASUS
  */
 public class Servidor implements Serializable{
-    public static final int MAX_SIZE=256;
+    public static final int MAX_SIZE=10000;
     public String diretoria=null;
     public InetAddress group;
     public int port;
@@ -98,7 +98,7 @@ public class Servidor implements Serializable{
         }catch(InterruptedException e){
             System.out.println("Ocorreu um erro no sleep");
         }finally{
-                closeSocket();
+            
         }
     }
     
@@ -123,9 +123,9 @@ public class Servidor implements Serializable{
                 do{
                     SocketTCP = serversocketTCP.accept();
                     EnviaRespostaTCP=new EnviaActualizacaoOURespostaClienteTCP(SocketTCP,diretoria);
-                }while(debug);
+                }while(debug==true);
             }
-        } while (debug);
+        } while (debug==true);
     }
     
     public void closeSocket() throws IOException
