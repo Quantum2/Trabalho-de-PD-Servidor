@@ -42,19 +42,16 @@ public class RecebeActualizacaoTCP extends Thread {
     @Override
     public void run() {                     //tem que se ver as melhores formas de mandar e receber ficheiros
         try {
-            do {
-                OutputStream oss = RecebeSocketTCP.getOutputStream();
-                sendobject = new ObjectOutputStream(oss);
-                sendobject.writeBoolean(Actualizado);           
+            do {              
+                sendobject = new ObjectOutputStream(RecebeSocketTCP.getOutputStream());
+                sendobject.writeBoolean(Actualizado);
+                sendobject.flush();
                 sendobject.close();
-                oss.close();
             
                 int tamanho;
                 byte[] bytes = new byte[MAX_SIZE];
-                InputStream in = null;
-                OutputStream ou = null;
-                in = RecebeSocketTCP.getInputStream();
-                ou = new FileOutputStream(Diretoria);
+                InputStream in = RecebeSocketTCP.getInputStream();
+                OutputStream ou = new FileOutputStream(Diretoria);
                 while ((tamanho = in.read(bytes)) > 0) {
                     ou.write(bytes, 0, tamanho);
                     Actualizado = true;
