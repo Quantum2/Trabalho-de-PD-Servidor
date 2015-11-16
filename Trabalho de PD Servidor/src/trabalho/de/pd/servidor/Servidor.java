@@ -102,28 +102,24 @@ public class Servidor implements Serializable{
         }
     }
     
-    public void começa() throws IOException, InterruptedException //nao sei usar o daemon, e nao sei como se fazia para istoo acabar so quando as threads acabarem
+    public void começa() throws IOException, InterruptedException//nao sei usar o daemon, e nao sei como se fazia para istoo acabar so quando as threads acabarem
     {
         do {
             heartRECV = new HeartbeatsRecebe(socketUDP, RecvpacketUDP);     //fazer esperar as threads
             heartRECV.start();
-            //heartRECV.run();
             heartRECV.join();
 
             heartENVIA = new HeartbeatsEnvia(SendpacketUDP,heartRECV.getPrimario());
             heartENVIA.start();
-            //heartENVIA.run();
             
             if(heartRECV.getPrimario()==false)
             {
                 RcActualizacaoTCP=new RecebeActualizacaoTCP(heartRECV.getIpPrimario(),heartRECV.getPortoPrimario(),diretoria);
                 RcActualizacaoTCP.start();
-                //RcActualizacaoTCP.run();
             }else{
                 do{
                     SocketTCP = serversocketTCP.accept();
                     EnviaRespostaTCP=new EnviaActualizacaoOURespostaClienteTCP(SocketTCP,diretoria);
-                    //EnviaRespostaTCP.run();
                 }while(debug==true);
             }
         } while (debug==true);
