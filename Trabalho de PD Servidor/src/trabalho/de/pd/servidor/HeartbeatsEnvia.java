@@ -45,12 +45,11 @@ public class HeartbeatsEnvia extends Thread {
                 ObjectOutputStream send = new ObjectOutputStream(byteout);
                 send.writeObject(Primario);
                 send.flush();
-                send.close();
                 
-                byte[] barray=byteout.toByteArray();
                 packet.setData(byteout.toByteArray());
                 packet.setLength(byteout.size());
                 SocketComDiretoria.send(packet); //teste
+                send.close();
                 System.out.println("Envia heartbeat...");
                 Thread.sleep(5000);
             } catch (NumberFormatException e) {

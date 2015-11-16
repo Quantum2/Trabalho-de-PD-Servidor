@@ -61,7 +61,7 @@ public class Servidor implements Serializable{
     private ServerSocket serversocketTCP=null;
     private Socket SocketTCP=null;
     
-    private boolean debug,Primario,Linked,Actualizado;
+    private boolean debug;
     
     public Servidor(String diretoria,int Porto) throws UnknownHostException, IOException, InterruptedException 
     {      
@@ -75,15 +75,9 @@ public class Servidor implements Serializable{
         SocketComDiretoria=new DatagramSocket();
         socketUDP = new MulticastSocket(port);
         socketUDP.joinGroup(group);
-        
-        //ainda nao utilizado
-        file=new byte[MAX_SIZE];      
-        
-        //boolean
-        Primario=false;
-        Linked=false;
-        Actualizado=false;
-        debug=true;
+           
+        //TCP  //nao sei se e o porto 7000 nao diz nada acho :S
+        serversocketTCP=new ServerSocket(port);
         
         System.out.println("Servidor a correr....");
         
@@ -118,8 +112,8 @@ public class Servidor implements Serializable{
                 RcActualizacaoTCP.start();
             }else{
                 do{
-                    SocketTCP = serversocketTCP.accept();
-                    EnviaRespostaTCP=new EnviaActualizacaoOURespostaClienteTCP(SocketTCP,diretoria);
+                        SocketTCP = serversocketTCP.accept();
+                        EnviaRespostaTCP=new EnviaActualizacaoOURespostaClienteTCP(SocketTCP,diretoria);
                 }while(debug==true);
             }
         } while (debug==true);
