@@ -77,7 +77,7 @@ public class Servidor implements Serializable{
         socketUDP.joinGroup(group);
            
         //TCP  //nao sei se e o porto 7000 nao diz nada acho :S
-        serversocketTCP=new ServerSocket(port);
+        serversocketTCP=new ServerSocket();
         
         System.out.println("Servidor a correr....");
         
@@ -86,7 +86,7 @@ public class Servidor implements Serializable{
         }catch(NumberFormatException e){
             System.out.println("O porto de escuta deve ser um inteiro positivo.");
         }catch(SocketException e){
-            System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t"+e);
+            System.out.println("Ocorreu um erro ao nível do server socket nao estar com porto definido:\n\t"+e);
         }catch(IOException e){
             System.out.println("Ocorreu um erro no acesso ao socket:\n\t"+e);
         }catch(InterruptedException e){
@@ -114,6 +114,8 @@ public class Servidor implements Serializable{
                 do{
                         SocketTCP = serversocketTCP.accept();
                         EnviaRespostaTCP=new EnviaActualizacaoOURespostaClienteTCP(SocketTCP,diretoria);
+                        EnviaRespostaTCP.start();
+                        EnviaRespostaTCP.join();
                 }while(debug==true);
             }
         } while (debug==true);
