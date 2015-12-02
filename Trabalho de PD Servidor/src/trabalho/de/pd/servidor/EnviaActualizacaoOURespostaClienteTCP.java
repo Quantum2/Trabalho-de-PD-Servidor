@@ -64,7 +64,7 @@ public class EnviaActualizacaoOURespostaClienteTCP extends Thread {   //se receb
                     if (msgrecebida instanceof Pedido) //nao esquecer mudar para socketcomcliente
                     {
                         Pedido c = (Pedido) msgrecebida;
-                        if (c.tipoPedido == Pedido.DOWNLOAD) {
+                        if (c.getTipoPedido() == Pedido.DOWNLOAD) {
                             File folder = new File(Diretoria);
                             File[] ListadosFicheiros = folder.listFiles();
                             OutputStream ou = Socket.getOutputStream();
@@ -80,7 +80,7 @@ public class EnviaActualizacaoOURespostaClienteTCP extends Thread {   //se receb
                             ou.close();
                             in.close();
                         }
-                        if (c.tipoPedido == Pedido.UPLOAD) {
+                        if (c.getTipoPedido() == Pedido.UPLOAD) {
                             int tamanho;
                             byte[] bytes = new byte[MAX_SIZE];
                             InputStream in = null;
@@ -93,7 +93,7 @@ public class EnviaActualizacaoOURespostaClienteTCP extends Thread {   //se receb
                             ou.close();
                             in.close();
                         }
-                        if (c.tipoPedido == Pedido.ELIMINAR)
+                        if (c.getTipoPedido() == Pedido.ELIMINAR)
                         {
                             int tamanho;
                             File folder = new File(Diretoria);

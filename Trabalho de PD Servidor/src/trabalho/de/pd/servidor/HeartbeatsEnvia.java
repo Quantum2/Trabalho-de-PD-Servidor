@@ -20,16 +20,14 @@ import static trabalho.de.pd.servidor.Servidor.MAX_SIZE;
  */
 public class HeartbeatsEnvia extends Thread {
 
-    private boolean Primario=false;
+    Servidor servidor=null;
     private DatagramSocket SocketComDiretoria = null;
     private DatagramPacket packet = null;
     protected boolean running = false;
     public HeartbeatsRecebe heartRECV=null;
 
-    public HeartbeatsEnvia(DatagramPacket SendpacketUDP, HeartbeatsRecebe heartRECV) throws SocketException {
-        SocketComDiretoria = new DatagramSocket();
-        packet = SendpacketUDP;
-        this.heartRECV=heartRECV;
+    public HeartbeatsEnvia(Servidor servidor) throws SocketException {
+        this.servidor=servidor;
         running = true;
     }
 
@@ -43,13 +41,10 @@ public class HeartbeatsEnvia extends Thread {
         do{
             try {
                 System.out.println("Envia esta a correr");
-                synchronized (heartRECV) {
-                    heartRECV.wait();
-                    Primario=heartRECV.getPrimario();
-                }
+
                 ByteArrayOutputStream byteout = new ByteArrayOutputStream();
                 ObjectOutputStream send = new ObjectOutputStream(byteout);
-                send.writeObject(Primario);
+                send.writeObject(servidor.isPrimario());
                 send.flush();
 
                 packet.setData(byteout.toByteArray());
@@ -63,8 +58,6 @@ public class HeartbeatsEnvia extends Thread {
                 System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
             } catch (IOException e) {
                 System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
-            } catch (InterruptedException e) {
-                System.out.println("Ocorreu um erro no sleep");
             } finally {
 
             }

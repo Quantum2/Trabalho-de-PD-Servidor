@@ -44,11 +44,11 @@ public class Servidor implements Serializable{
     private DatagramSocket SocketComDiretoria=null;
     
     //TCP
-    private ServerSocket serversocketTCP=null;
+    public ServerSocket serverSocketTCP=null;
     public Socket primarioSocketTCP=null;
     
     //boolean
-    private Boolean Primario=null;
+    private Boolean primario=null;
     
     private boolean debug;
     
@@ -76,10 +76,10 @@ public class Servidor implements Serializable{
         multicastSocketUDP.setSoTimeout(5000);
            
         //TCP  //nao sei se e o porto 7000 nao diz nada acho :S
-        serversocketTCP=new ServerSocket(TCPport);
+        serverSocketTCP=new ServerSocket(TCPport);
         
         //boolean
-        Primario=false;
+        primario=false;
         System.out.println("Servidor a correr....");
     }
     
@@ -157,7 +157,11 @@ public class Servidor implements Serializable{
             multicastSocketUDP.close();
     }
     
-    public InetAddress getInetAddressPrimario() {
-        return primarioSocketTCP.getInetAddress();
+    public boolean isPrimario() {
+        return primario;
+    }
+    
+    public void setPrimario(boolean primario) {
+        this.primario=primario;
     }
 }

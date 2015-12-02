@@ -16,7 +16,6 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static trabalho.de.pd.servidor.Servidor.MAX_SIZE;
 
 /**
  *
@@ -27,7 +26,6 @@ public class HeartbeatsRecebe extends Thread{
     Servidor servidor=null;
     public static final int MAX_SIZE=10000;
     int contador = 0;
-    private boolean Primario = false;
     protected DatagramPacket packet = null;
     protected boolean running = false;
     public InetAddress IpPrimario = null;
@@ -36,10 +34,6 @@ public class HeartbeatsRecebe extends Thread{
     public HeartbeatsRecebe(Servidor servidor) throws SocketException {
         this.servidor=servidor;
         running = true;
-    }
-
-    public Boolean getPrimario() {
-        return Primario;
     }
 
     public InetAddress getIpPrimario() {
@@ -67,7 +61,7 @@ public class HeartbeatsRecebe extends Thread{
                 
                 boolean msg =(boolean) recv.readObject();
                 if (msg) {
-                    if (!Primario) {
+                    if (!servidor.isPrimario()) {
                         IpPrimario = packet.getAddress();
                         PortoPrimario = packet.getPort();
                         servidor.conectaServidorPrimario(IpPrimario, PortoPrimario);
@@ -86,11 +80,11 @@ public class HeartbeatsRecebe extends Thread{
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }finally {
-                if (Primario == true) {
+                if (servidor.isPrimario()) {
                     contador=0;
                 }else{
                     if(contador==3){
-                        Primario=true;
+                        servidor.setPrimario(true);
                     }else{
                        contador++;
                     }                   

@@ -19,8 +19,8 @@ public class Pedido {
     public final static int ELIMINAR = 3;
     
     //inclui .extensão
-    String nomeFicheiro;
-    int tipoPedido;
+    private String nomeFicheiro;
+    private int tipoPedido;
     
     public Pedido (String nomeFicheiro, int tipoPedido) {
         this.nomeFicheiro=nomeFicheiro;
