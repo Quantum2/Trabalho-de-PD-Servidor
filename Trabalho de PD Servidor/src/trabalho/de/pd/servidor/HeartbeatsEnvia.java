@@ -20,15 +20,16 @@ import static trabalho.de.pd.servidor.Servidor.MAX_SIZE;
  */
 public class HeartbeatsEnvia extends Thread {
 
-    private boolean Primario = false;
+    private boolean Primario=false;
     private DatagramSocket SocketComDiretoria = null;
     private DatagramPacket packet = null;
     protected boolean running = false;
+    public HeartbeatsRecebe heartRECV=null;
 
-    public HeartbeatsEnvia(DatagramPacket SendpacketUDP, Boolean Primario) throws SocketException {
+    public HeartbeatsEnvia(DatagramPacket SendpacketUDP, HeartbeatsRecebe heartRECV) throws SocketException {
         SocketComDiretoria = new DatagramSocket();
         packet = SendpacketUDP;
-        this.Primario = Primario;
+        this.heartRECV=heartRECV;
         running = true;
     }
 
@@ -39,19 +40,23 @@ public class HeartbeatsEnvia extends Thread {
     @Override
     public void run() {
         System.out.println("Thread HearbeatEnvia a correr.....");
-        do {
+        do{
             try {
+                System.out.println("Envia esta a correr");
+                synchronized (heartRECV) {
+                    heartRECV.wait();
+                    Primario=heartRECV.getPrimario();
+                }
                 ByteArrayOutputStream byteout = new ByteArrayOutputStream();
                 ObjectOutputStream send = new ObjectOutputStream(byteout);
                 send.writeObject(Primario);
                 send.flush();
-                
+
                 packet.setData(byteout.toByteArray());
                 packet.setLength(byteout.size());
                 SocketComDiretoria.send(packet); //teste
                 send.close();
                 System.out.println("Envia heartbeat...");
-                Thread.sleep(5000);
             } catch (NumberFormatException e) {
                 System.out.println("O porto de escuta deve ser um inteiro positivo.");
             } catch (SocketException e) {
@@ -63,8 +68,10 @@ public class HeartbeatsEnvia extends Thread {
             } finally {
 
             }
-        } while (running);
+        }while(running);
         System.out.println("Acabou HeartbeatsEnvia...");
     }
+    
+    
 
 }

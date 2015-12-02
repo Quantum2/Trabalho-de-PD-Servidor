@@ -17,7 +17,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static trabalho.de.pd.servidor.RecebeActualizacaoTCP.MAX_SIZE;
 
 /**
  *
@@ -62,10 +61,10 @@ public class EnviaActualizacaoOURespostaClienteTCP extends Thread {   //se receb
                     ou.close();
                     in.close();
                 } else {
-                    if (msgrecebida instanceof Cliente) //nao esquecer mudar para socketcomcliente
+                    if (msgrecebida instanceof Pedido) //nao esquecer mudar para socketcomcliente
                     {
-                        Cliente c = (Cliente) msgrecebida;
-                        if (c.download == true) {
+                        Pedido c = (Pedido) msgrecebida;
+                        if (c.tipoPedido == Pedido.DOWNLOAD) {
                             File folder = new File(Diretoria);
                             File[] ListadosFicheiros = folder.listFiles();
                             OutputStream ou = Socket.getOutputStream();
@@ -81,7 +80,7 @@ public class EnviaActualizacaoOURespostaClienteTCP extends Thread {   //se receb
                             ou.close();
                             in.close();
                         }
-                        if (c.Upload == true) {
+                        if (c.tipoPedido == Pedido.UPLOAD) {
                             int tamanho;
                             byte[] bytes = new byte[MAX_SIZE];
                             InputStream in = null;
@@ -94,7 +93,7 @@ public class EnviaActualizacaoOURespostaClienteTCP extends Thread {   //se receb
                             ou.close();
                             in.close();
                         }
-                        if (c.Ver == true)
+                        if (c.tipoPedido == Pedido.ELIMINAR)
                         {
                             int tamanho;
                             File folder = new File(Diretoria);
@@ -108,14 +107,6 @@ public class EnviaActualizacaoOURespostaClienteTCP extends Thread {   //se receb
                             ObjectOutputStream sendcliente = new ObjectOutputStream(oss);
                             sendcliente.writeObject(NomesFicheiros);
                             sendcliente.close();
-                            
-                            /*int tamanho;
-                            File folder = new File(Diretoria);     
-                            File[] ListadosFicheiros = folder.listFiles();                       //talvez uma maneira mais facil de mandar todos os ficheiros
-                            OutputStream oss = SocketComSecundario.getOutputStream();
-                            ObjectOutputStream sendcliente = new ObjectOutputStream(oss);
-                            sendcliente.writeObject(ListadosFicheiros);
-                            sendcliente.close();*/
                         }
                     }
                 }

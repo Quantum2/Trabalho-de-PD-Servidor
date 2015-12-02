@@ -16,25 +16,25 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static trabalho.de.pd.servidor.Servidor.MAX_SIZE;
 
 /**
  *
  * @author ASUS
  */
-public class HeartbeatsRecebe extends Thread {
+public class HeartbeatsRecebe extends Thread{
 
+    Servidor servidor=null;
+    public static final int MAX_SIZE=10000;
     int contador = 0;
     private boolean Primario = false;
-    protected MulticastSocket socket = null;
     protected DatagramPacket packet = null;
     protected boolean running = false;
     public InetAddress IpPrimario = null;
     public int PortoPrimario = 0;
 
-    public HeartbeatsRecebe(MulticastSocket socketUDP, DatagramPacket RecvPacket) throws SocketException {
-        this.socket = socketUDP;
-        socket.setBroadcast(true);
-        this.packet = RecvPacket;
+    public HeartbeatsRecebe(Servidor servidor) throws SocketException {
+        this.servidor=servidor;
         running = true;
     }
 
@@ -55,40 +55,48 @@ public class HeartbeatsRecebe extends Thread {
     }
 
     @Override
-    public void run() {   //falta fazer quando ha mais do que 1 primario
+    public void run()  {   //falta fazer quando ha mais do que 1 primario
         System.out.println("Thread HeartbeatsRecebe a correr...");
         do {
             try {
-                ObjectInputStream recv = null;
-                socket.setSoTimeout(5);
-                socket.receive(packet);
-                recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(),0,packet.getLength()));
-                Object msg =(Object) recv.readObject();
-                if (msg instanceof Boolean) {
-                    if (true == (Boolean) msg && Primario == false) {
+                System.out.println("Recebe esta a correr");
+                packet=new DatagramPacket(new byte[MAX_SIZE],MAX_SIZE);
+                servidor.getMulticastSocket().receive(packet);
+                
+                ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(),0,packet.getLength()));
+                
+                boolean msg =(boolean) recv.readObject();
+                if (msg) {
+                    if (!Primario) {
                         IpPrimario = packet.getAddress();
                         PortoPrimario = packet.getPort();
-                        termina();
-                    }
+                        servidor.conectaServidorPrimario(IpPrimario, PortoPrimario);
+                        servidor.recebeListaFicheiros();
+                    }else{}
+                    //falta fazer quando ha mais do que 1 primario
                 }
             } catch (NumberFormatException e) {
                 System.out.println("O porto de escuta deve ser um inteiro positivo.");
             } catch (SocketException e) {
                 System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
             } catch (SocketTimeoutException e) {
-                if (contador == 3) {
-                    Primario = true;
-                    termina();
-                }
+                
             } catch (IOException e) {
                 System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
-                if (Primario == false) {
-                    contador++;
-                } else {
-                    contador = 0;
+            }finally {
+                if (Primario == true) {
+                    contador=0;
+                }else{
+                    if(contador==3){
+                        Primario=true;
+                    }else{
+                       contador++;
+                    }                   
+                }
+                synchronized (this) {
+                    this.notifyAll();
                 }
             }
         } while (running);

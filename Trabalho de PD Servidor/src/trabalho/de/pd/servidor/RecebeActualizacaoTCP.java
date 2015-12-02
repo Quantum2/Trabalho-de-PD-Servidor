@@ -5,7 +5,6 @@
  */
 package trabalho.de.pd.servidor;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,42 +23,25 @@ import java.util.logging.Logger;
 public class RecebeActualizacaoTCP extends Thread {
 
     public static final int MAX_SIZE=256;
-    public ObjectOutputStream sendobject = null;
+    
+    Servidor servidor = null;
+    
+    InputStream inputStreamFicheiro = null;
 
-    private Socket RecebeSocketTCP = null;
-    boolean Actualizado = false;
-    public InetAddress IpPrimario = null;
-    public int PortoPrimario = 0;
-    public String Diretoria=null;
-
-    public RecebeActualizacaoTCP(InetAddress Ip, int porto,String Diretoria) throws IOException {
-        this.IpPrimario = Ip;
-        this.PortoPrimario = porto;
-        this.Diretoria=Diretoria;
-        RecebeSocketTCP = new Socket(IpPrimario, PortoPrimario);
+    public RecebeActualizacaoTCP(Servidor servidor) throws IOException {
+        this.servidor = servidor;
+        inputStreamFicheiro = servidor.primarioSocketTCP.getInputStream();
     }
 
     @Override
     public void run() {                     //tem que se ver as melhores formas de mandar e receber ficheiros
         try {
-            do {              
-                sendobject = new ObjectOutputStream(RecebeSocketTCP.getOutputStream());
-                sendobject.writeBoolean(Actualizado);
-                sendobject.flush();
-                sendobject.close();
-            
-                int tamanho;
-                byte[] bytes = new byte[MAX_SIZE];
-                InputStream in = RecebeSocketTCP.getInputStream();
-                OutputStream ou = new FileOutputStream(Diretoria);
-                while ((tamanho = in.read(bytes)) > 0) {
-                    ou.write(bytes, 0, tamanho);
-                    Actualizado = true;
-                }
-                ou.close();
-                in.close();
-            } while (Actualizado);
-            
+            int nbytes;
+            byte [] filechunck = new byte [MAX_SIZE];
+            FileOutputStream fOut = new FileOutputStream(servidor.diretoria);
+            while((nbytes=inputStreamFicheiro.read(filechunck))>0) {
+                fOut.write(filechunck,0,nbytes);
+            }
         } catch (IOException ex) {
             Logger.getLogger(RecebeActualizacaoTCP.class.getName()).log(Level.SEVERE, null, ex);
         }
