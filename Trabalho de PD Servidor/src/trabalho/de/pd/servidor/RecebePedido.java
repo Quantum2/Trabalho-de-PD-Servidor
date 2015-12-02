@@ -31,6 +31,8 @@ public class RecebePedido extends Thread {
             Pedido pedido = (Pedido) ois.readObject();
             if (pedido.getTipoPedido() == Pedido.DOWNLOAD) {
                 EnviaFicheiro envia = new EnviaFicheiro(servidor,socketPedido,pedido.getNomeFicheiro());
+            } else if (pedido.getTipoPedido() == Pedido.ELIMINAR) {
+                EliminaFicheiro elimina = new EliminaFicheiro();
             }
         } catch (IOException ex) {
             Logger.getLogger(RecebePedido.class.getName()).log(Level.SEVERE, null, ex);
