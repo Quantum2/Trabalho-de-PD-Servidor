@@ -27,8 +27,8 @@ public class HeartbeatsRecebe extends Thread{
     int contador = 0;
     protected DatagramPacket packet = null;
     protected boolean running = false;
-    public InetAddress IpPrimario = null;
-    public int PortoPrimario = 0;
+    public InetAddress ipPrimario = null;
+    public int portoPrimario = 0;
 
     public HeartbeatsRecebe(Servidor servidor) throws SocketException {
         this.servidor=servidor;
@@ -36,11 +36,11 @@ public class HeartbeatsRecebe extends Thread{
     }
 
     public InetAddress getIpPrimario() {
-        return IpPrimario;
+        return ipPrimario;
     }
 
     public int getPortoPrimario() {
-        return PortoPrimario;
+        return portoPrimario;
     }
 
     public void termina() {

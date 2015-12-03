@@ -76,10 +76,11 @@ public class Servidor implements Serializable{
         group=InetAddress.getByName("225.15.15.15");
         multicastSocketUDP = new MulticastSocket(7000);
         multicastSocketUDP.joinGroup(group);
-        multicastSocketUDP.setSoTimeout(5);
+        multicastSocketUDP.setSoTimeout(5000);
         
         //TCP  //nao sei se e o porto 7000 nao diz nada acho :S
         serverSocketTCP=new ServerSocket(TCPport);
+        serverSocketTCP.setSoTimeout(5000);
         
         //boolean
         primario=false;
@@ -93,6 +94,7 @@ public class Servidor implements Serializable{
     public void conectaServidorPrimario(InetAddress addr,int port){
         try {
             this.primarioSocketTCP=new Socket(addr,port);
+            this.primarioSocketTCP.setSoTimeout(5000);
         } catch (IOException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -124,40 +126,48 @@ public class Servidor implements Serializable{
     }
     
     public void começa() {
-        int contador = 0;
-        DatagramPacket packet = null;
-        while (contador != 3) {
-            try {
-                packet = new DatagramPacket(new byte[MAX_SIZE], MAX_SIZE);
-                getMulticastSocket().receive(packet);
+        while (true) {
+            int contador = 0;
+            DatagramPacket packet = null;
+            while (contador != 3) {
+                try {
+                    packet = new DatagramPacket(new byte[MAX_SIZE], MAX_SIZE);
+                    getMulticastSocket().receive(packet);
 
-                ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
+                    ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
 
-                boolean msg = (boolean) recv.readObject();
-                if (msg) {
-                    conectaServidorPrimario(packet.getAddress(), packet.getPort());
-                    break;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("O porto de escuta deve ser um inteiro positivo.");
-            } catch (SocketException e) {
-                System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
-            } catch (SocketTimeoutException e) {
+                    boolean msg = (boolean) recv.readObject();
+                    if (msg) {
+                        conectaServidorPrimario(packet.getAddress(), packet.getPort());
+                        break;
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("O porto de escuta deve ser um inteiro positivo.");
+                } catch (SocketException e) {
+                    System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
+                } catch (SocketTimeoutException e) {
 
-            } catch (IOException e) {
-                System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
-                contador++;            
-                if(contador==3){
-                    setPrimario(true);
-                    break;
+                } catch (IOException e) {
+                    System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    contador++;
+                    if (contador == 3) {
+                        setPrimario(true);
+                        break;
+                    }
                 }
             }
+
+            arrancaThreads();
+            try {
+                heartRECV.join();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            recomeça();
         }
-        
-        arrancaThreads();
     }
     
     public void arrancaThreads()
@@ -183,18 +193,7 @@ public class Servidor implements Serializable{
             
         } catch (SocketException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        
-        
-        try {
-            heartRECV.join();
-        } catch (InterruptedException ex) {
-            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        recomeça();
     }
     
     public void arrancaThreadEnviaFicheiro(Socket pedidosSocketTCP,Pedido pedido){
@@ -218,10 +217,12 @@ public class Servidor implements Serializable{
             heartENVIA.termina();
             heartENVIA.join();
             
+            recebeActualizacaoTCP.termina();
+            recebeActualizacaoTCP.join();
+            
             recebePedido.termina();
             recebePedido.join();
             
-            começa();
         } catch (InterruptedException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
