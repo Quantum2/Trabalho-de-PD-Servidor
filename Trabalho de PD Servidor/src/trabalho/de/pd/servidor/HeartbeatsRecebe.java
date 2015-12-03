@@ -61,7 +61,11 @@ public class HeartbeatsRecebe extends Thread{
                 msg = (Boolean) recv.readObject();
                 if(msg){
                     //compara ip dos dois primarios
-                    if()
+                    if(servidor.getServerSocketTCP().getInetAddress().getHostAddress().compareTo(packet.getAddress().getHostAddress())>0)
+                    {
+                        servidor.setPrimario(false);
+                        termina();
+                    }
                 }
             } catch (NumberFormatException e) {
                 System.out.println("O porto de escuta deve ser um inteiro positivo.");
@@ -79,10 +83,6 @@ public class HeartbeatsRecebe extends Thread{
                 if(servidor.isPrimario())
                     contador=0;
             }
-        } while (contador!=3);
-        
-        synchronized(this){
-            this.notifyAll();
-        }
+        } while (contador!=3 && running);
     }
 }
