@@ -276,6 +276,6 @@ public class Servidor implements Serializable{
     }
     
     public int getPort(){
-        return port;
+        return 7000;
     }
 }
