@@ -59,6 +59,7 @@ public class HeartbeatsRecebe extends Thread{
 
                 ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
                 msg = (Boolean) recv.readObject();
+                System.out.println("[SERVIDOR] Received Heartbeat");
                 if(msg){
                     //compara ip dos dois primarios
                     if(servidor.getServerSocketTCP().getInetAddress().getHostAddress().compareTo(packet.getAddress().getHostAddress())>0)

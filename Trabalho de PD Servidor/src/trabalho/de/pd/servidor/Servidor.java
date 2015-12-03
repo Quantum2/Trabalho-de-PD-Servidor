@@ -42,7 +42,6 @@ public class Servidor implements Serializable{
     
     //UDP
     protected MulticastSocket multicastSocketUDP=null;
-    private DatagramPacket SendpacketUDP=null;
     private DatagramPacket RecvpacketUDP=null;
     private DatagramSocket SocketComDiretoria=null;
     
@@ -69,9 +68,7 @@ public class Servidor implements Serializable{
         }
         
         //UDP
-        SendpacketUDP=new DatagramPacket(new byte[MAX_SIZE],MAX_SIZE,group,port);
         SocketComDiretoria=new DatagramSocket();
-        
         
         group=InetAddress.getByName("225.15.15.15");
         multicastSocketUDP = new MulticastSocket(7000);
@@ -132,12 +129,14 @@ public class Servidor implements Serializable{
             while (contador != 3) {
                 try {
                     packet = new DatagramPacket(new byte[MAX_SIZE], MAX_SIZE);
+                    System.out.println("[SERVIDOR] Vai receber heartbeat");
                     getMulticastSocket().receive(packet);
 
                     ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
 
                     boolean msg = (boolean) recv.readObject();
                     if (msg) {
+                        System.out.println("[SERVIDOR] Recebeu heartbeat primário");
                         conectaServidorPrimario(packet.getAddress(), packet.getPort());
                         break;
                     }
@@ -153,25 +152,31 @@ public class Servidor implements Serializable{
                     Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 } finally {
                     contador++;
+                    System.out.println("[SERVIDOR] Contador: " + contador);
                     if (contador == 3) {
+                        System.out.println("[SERVIDOR] Tornou-se servidor primário");
                         setPrimario(true);
                         break;
                     }
                 }
             }
-
+            System.out.println("[SERVIDOR] Antes de arrancar threads");
             arrancaThreads();
+            System.out.println("[SERVIDOR] Depois de arrancar threads");
             try {
                 heartRECV.join();
+                System.out.println("[SERVIDOR] Depois de join de heartRECV");
             } catch (InterruptedException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
-            recomeça();
+            //recomeça();
+            System.out.println("[SERVIDOR] Vai recomeçar ciclo");
         }
     }
     
     public void arrancaThreads()
     {
+        /*
         if(!isPrimario()){           
             try {
                 recebeActualizacaoTCP = new RecebeActualizacaoTCP(this);
@@ -180,6 +185,7 @@ public class Servidor implements Serializable{
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }            
         }
+        */
         
         try {
             heartRECV=new HeartbeatsRecebe(this);
@@ -188,8 +194,8 @@ public class Servidor implements Serializable{
             heartENVIA=new HeartbeatsEnvia(this);
             heartENVIA.start();
             
-            recebePedido=new RecebePedido(this);
-            recebePedido.start();
+            //recebePedido=new RecebePedido(this);
+            //recebePedido.start();
             
         } catch (SocketException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
