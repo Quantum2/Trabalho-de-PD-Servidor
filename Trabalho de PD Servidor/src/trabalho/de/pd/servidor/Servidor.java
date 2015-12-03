@@ -193,11 +193,13 @@ public class Servidor implements Serializable{
             
             heartENVIA=new HeartbeatsEnvia(this);
             heartENVIA.start();
-            
-            //recebePedido=new RecebePedido(this);
-            //recebePedido.start();
+            serverSocketTCP.accept();
+            recebePedido=new RecebePedido(this);
+            recebePedido.start();
             
         } catch (SocketException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
