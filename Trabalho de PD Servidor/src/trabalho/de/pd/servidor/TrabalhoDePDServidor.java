@@ -49,7 +49,7 @@ public class TrabalhoDePDServidor implements Serializable {
         if(!new File(dir).exists()){
             new File(dir).mkdir();
         }
-        Servidor s=new Servidor(dir,5000);
+        Servidor s=new Servidor(dir,5000); //port 0 para qualquer uma
         s.começa();
     }
 }

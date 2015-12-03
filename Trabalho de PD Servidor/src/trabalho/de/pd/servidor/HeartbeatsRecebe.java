@@ -59,6 +59,10 @@ public class HeartbeatsRecebe extends Thread{
 
                 ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
                 msg = (Boolean) recv.readObject();
+                if(msg){
+                    //compara ip dos dois primarios
+                    if()
+                }
             } catch (NumberFormatException e) {
                 System.out.println("O porto de escuta deve ser um inteiro positivo.");
             } catch (SocketException e) {
@@ -72,6 +76,8 @@ public class HeartbeatsRecebe extends Thread{
             } finally {
                 if(msg==null)
                     contador++;
+                if(servidor.isPrimario())
+                    contador=0;
             }
         } while (contador!=3);
         

@@ -26,8 +26,13 @@ public class RecebePedido extends Thread {
         running = true;
     }
     
+    public void termina() {
+        running = false;
+    }
+    
     @Override
     public void run() {
+        System.out.println("Thread RecebePedido a correr....");
         do {
             try {
                 Pedido pedido = null;

@@ -76,8 +76,8 @@ public class Servidor implements Serializable{
         group=InetAddress.getByName("225.15.15.15");
         multicastSocketUDP = new MulticastSocket(7000);
         multicastSocketUDP.joinGroup(group);
-        multicastSocketUDP.setSoTimeout(5000);
-           
+        multicastSocketUDP.setSoTimeout(5);
+        
         //TCP  //nao sei se e o porto 7000 nao diz nada acho :S
         serverSocketTCP=new ServerSocket(TCPport);
         
@@ -162,7 +162,7 @@ public class Servidor implements Serializable{
     
     public void arrancaThreads()
     {
-        if(isPrimario()){           
+        if(!isPrimario()){           
             try {
                 recebeActualizacaoTCP = new RecebeActualizacaoTCP(this);
                 recebeActualizacaoTCP.start();
@@ -212,7 +212,20 @@ public class Servidor implements Serializable{
         eliminarFicheiro.start();
     }
     
-    public void recomeça(){
+    public void recomeça(){       
+        
+        try {
+            heartENVIA.termina();
+            heartENVIA.join();
+            
+            recebePedido.termina();
+            recebePedido.join();
+            
+            começa();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         
     }
     
@@ -249,5 +262,13 @@ public class Servidor implements Serializable{
     
     public ServerSocket getServerSocketTCP(){
         return serverSocketTCP;
+    }
+    
+    public InetAddress getGroup(){
+        return group;
+    }
+    
+    public int getPort(){
+        return port;
     }
 }
