@@ -14,6 +14,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static trabalho.de.pd.servidor.Servidor.MAX_SIZE;
 
 /**
  *
@@ -49,46 +50,33 @@ public class HeartbeatsRecebe extends Thread{
     @Override
     public void run()  {   //falta fazer quando ha mais do que 1 primario
         System.out.println("Thread HeartbeatsRecebe a correr...");
+        Boolean msg=null;
         do {
             try {
-                System.out.println("Recebe esta a correr");
-                packet=new DatagramPacket(new byte[MAX_SIZE],MAX_SIZE);
+                msg=null;
+                packet = new DatagramPacket(new byte[MAX_SIZE], MAX_SIZE);
                 servidor.getMulticastSocket().receive(packet);
-                
-                ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(),0,packet.getLength()));
-                
-                boolean msg =(boolean) recv.readObject();
-                if (msg) {
-                    if (!servidor.isPrimario()) {
-                        IpPrimario = packet.getAddress();
-                        PortoPrimario = packet.getPort();
-                        servidor.conectaServidorPrimario(IpPrimario, PortoPrimario);
-                        servidor.recebeListaFicheiros();
-                    }else{}
-                    //falta fazer quando ha mais do que 1 primario
-                }
+
+                ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
+                msg = (Boolean) recv.readObject();
             } catch (NumberFormatException e) {
                 System.out.println("O porto de escuta deve ser um inteiro positivo.");
             } catch (SocketException e) {
                 System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
             } catch (SocketTimeoutException e) {
-                
+
             } catch (IOException e) {
                 System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-            }finally {
-                if (servidor.isPrimario()) {
-                    contador=0;
-                }else{
-                    if(contador==3){
-                        servidor.setPrimario(true);
-                    }else{
-                       contador++;
-                    }                   
-                }
+            } finally {
+                if(msg==null)
+                    contador++;
             }
-        } while (running);
-        System.out.println("Acabou HearbeatsRecebe...");
+        } while (contador!=3);
+        
+        synchronized(this){
+            this.notifyAll();
+        }
     }
 }

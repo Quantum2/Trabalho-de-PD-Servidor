@@ -12,6 +12,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.MulticastSocket;
 import java.net.SocketException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static trabalho.de.pd.servidor.Servidor.MAX_SIZE;
 
 /**
@@ -41,7 +43,6 @@ public class HeartbeatsEnvia extends Thread {
         do{
             try {
                 System.out.println("Envia esta a correr");
-
                 ByteArrayOutputStream byteout = new ByteArrayOutputStream();
                 ObjectOutputStream send = new ObjectOutputStream(byteout);
                 send.writeObject(servidor.isPrimario());
@@ -51,13 +52,15 @@ public class HeartbeatsEnvia extends Thread {
                 packet.setLength(byteout.size());
                 SocketComDiretoria.send(packet); //teste
                 send.close();
-                System.out.println("Envia heartbeat...");
+                sleep(5000);
             } catch (NumberFormatException e) {
                 System.out.println("O porto de escuta deve ser um inteiro positivo.");
             } catch (SocketException e) {
                 System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
             } catch (IOException e) {
                 System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(HeartbeatsEnvia.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
 
             }

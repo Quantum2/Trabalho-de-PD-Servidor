@@ -5,6 +5,7 @@
  */
 package trabalho.de.pd.servidor;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -17,6 +18,7 @@ import java.net.MulticastSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,13 +31,14 @@ public class Servidor implements Serializable{
     public String diretoria=null;
     public InetAddress group;
     public int port;
-    ListaFicheiros listaFicheiros=null;
+    public ListaFicheiros listaFicheiros=null;
     
     //threads
     public HeartbeatsRecebe heartRECV=null;
     public HeartbeatsEnvia heartENVIA=null;
+    public RecebeActualizacaoTCP recebeActualizacaoTCP=null;
     public RecebeActualizacaoTCP RcActualizacaoTCP=null;
-    public EnviaActualizacaoOURespostaClienteTCP EnviaRespostaTCP=null;
+    public RecebePedido recebePedido=null;
     
     //UDP
     protected MulticastSocket multicastSocketUDP=null;
@@ -102,7 +105,8 @@ public class Servidor implements Serializable{
             ois.close();
             for(File file:new File(diretoria).listFiles()) {
                 file.delete();
-            }               
+            }
+            
             ObjectOutputStream oos = new ObjectOutputStream(primarioSocketTCP.getOutputStream());
             for (Ficheiro ficheiro : listaFicheiros.getArrayListFicheiro()) {
                 RecebeActualizacaoTCP recebeFicheiro = new RecebeActualizacaoTCP(this);
@@ -119,34 +123,96 @@ public class Servidor implements Serializable{
         }
     }
     
-    public void começa()
+    public void começa() {
+        int contador = 0;
+        DatagramPacket packet = null;
+        while (contador != 3) {
+            try {
+                packet = new DatagramPacket(new byte[MAX_SIZE], MAX_SIZE);
+                getMulticastSocket().receive(packet);
+
+                ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
+
+                boolean msg = (boolean) recv.readObject();
+                if (msg) {
+                    conectaServidorPrimario(packet.getAddress(), packet.getPort());
+                    break;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("O porto de escuta deve ser um inteiro positivo.");
+            } catch (SocketException e) {
+                System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
+            } catch (SocketTimeoutException e) {
+
+            } catch (IOException e) {
+                System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                contador++;            
+                if(contador==3){
+                    setPrimario(true);
+                    break;
+                }
+            }
+        }
+        
+        arrancaThreads();
+    }
+    
+    public void arrancaThreads()
     {
+        if(isPrimario()){           
+            try {
+                recebeActualizacaoTCP = new RecebeActualizacaoTCP(this);
+                recebeActualizacaoTCP.start();
+            } catch (IOException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            }            
+        }
+        
         try {
-            heartRECV = new HeartbeatsRecebe(this);
+            heartRECV=new HeartbeatsRecebe(this);
             heartRECV.start();
             
-            /*heartENVIA = new HeartbeatsEnvia(SendpacketUDP, heartRECV); 
+            heartENVIA=new HeartbeatsEnvia(this);
             heartENVIA.start();
-            */
-            heartRECV.join();
-            //heartENVIA.join();
+            
+            recebePedido=new RecebePedido(this);
+            recebePedido.start();
+            
         } catch (SocketException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InterruptedException ex) {
+        } catch (IOException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         
         
-
-/*
-         RcActualizacaoTCP=new RecebeActualizacaoTCP(heartRECV.getIpPrimario(),heartRECV.getPortoPrimario(),diretoria);
-         RcActualizacaoTCP.start();
-                
-         SocketTCP = serversocketTCP.accept();
-         EnviaRespostaTCP=new EnviaActualizacaoOURespostaClienteTCP(SocketTCP,diretoria);
-         EnviaRespostaTCP.start();*/
-
+        try {
+            heartRECV.join();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        recomeça();
+    }
+    
+    public void arrancaThreadEnviaFicheiro(Socket pedidosSocketTCP,Pedido pedido){
+        EnviaFicheiro enviaFicheiro=new EnviaFicheiro(this,pedidosSocketTCP,pedido.getNomeFicheiro());
+        enviaFicheiro.start();
+    }
+    
+    public void arrancaThreadRecebeFicheiro(Socket pedidosSocketTCP){
+        RecebeFicheiro recebeFicheiro=new RecebeFicheiro(this,pedidosSocketTCP);
+        recebeFicheiro.start();
+    }
+    
+    public void arrancaThreadEliminaFicheiro(Pedido pedido){
+        EliminarFicheiro eliminarFicheiro=new EliminarFicheiro(this,pedido.getNomeFicheiro());
+        eliminarFicheiro.start();
+    }
+    
+    public void recomeça(){
         
     }
     
@@ -157,11 +223,31 @@ public class Servidor implements Serializable{
             multicastSocketUDP.close();
     }
     
-    public boolean isPrimario() {
+    public Boolean isPrimario() {
         return primario;
     }
     
-    public void setPrimario(boolean primario) {
+    public void setPrimario(Boolean primario) {
         this.primario=primario;
+    }
+    
+    public Socket getPrimarioSocketTCP(){
+        return primarioSocketTCP;
+    }
+    
+    public String getDiretoria(){
+        return diretoria;
+    }
+    
+    public ListaFicheiros getListaFicheiros(){
+        return listaFicheiros;
+    }
+    
+    public void setListaFicheiros(ListaFicheiros listaFicheiros){
+        this.listaFicheiros=listaFicheiros;
+    }
+    
+    public ServerSocket getServerSocketTCP(){
+        return serverSocketTCP;
     }
 }
