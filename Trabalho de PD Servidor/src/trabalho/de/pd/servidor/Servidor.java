@@ -133,8 +133,8 @@ public class Servidor implements Serializable{
                     getMulticastSocket().receive(packet);
 
                     ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
-
-                    boolean msg = (boolean) recv.readObject();
+                    
+                    boolean msg = (boolean)recv.readObject();
                     if (msg) {
                         System.out.println("[SERVIDOR] Recebeu heartbeat primário");
                         conectaServidorPrimario(packet.getAddress(), packet.getPort());
@@ -276,6 +276,6 @@ public class Servidor implements Serializable{
     }
     
     public int getPort(){
-        return port;
+        return 7000;
     }
 }
