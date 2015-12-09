@@ -48,24 +48,24 @@ public class HeartbeatsRecebe extends Thread{
     }
 
     @Override
-    public void run()  {   //falta fazer quando ha mais do que 1 primario
+    public void run()  {   //falta fazer quando ha mais do que 1 primario && o fazer o tempo de 5 segundos a espera e nao com o timeout
         System.out.println("Thread HeartbeatsRecebe a correr...");
-        Boolean msg=null;
+        HeartBeat msg=null;
         do {
             try {
                 msg=null;
                 packet = new DatagramPacket(new byte[MAX_SIZE], MAX_SIZE);
                 servidor.getMulticastSocket().receive(packet);
                 ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
-                msg = (boolean) recv.readObject();
+                msg = (HeartBeat) recv.readObject();
                 System.out.println("[SERVIDOR] Received Heartbeat " + packet.getAddress().getHostAddress());
-                if(msg){
+                if(msg.getPrimario()){
                     //compara ip dos dois primarios
                     if(servidor.getServerSocketTCP().getInetAddress().getHostAddress().compareTo(packet.getAddress().getHostAddress())>0)
                     {
                         servidor.setPrimario(false);
-                        termina();
                     }
+                    servidor.setTStart(System.currentTimeMillis());
                 }
             } catch (NumberFormatException e) {
                 System.out.println("O porto de escuta deve ser um inteiro positivo.");
@@ -78,8 +78,11 @@ public class HeartbeatsRecebe extends Thread{
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
-                if(msg==null)
-                    contador++;
+                if(msg==null || msg.getPrimario()==false){
+                    servidor.setTFinal(System.currentTimeMillis());
+                    if(((servidor.getTFinal()-servidor.getTStart())/1000.0)>5)
+                        contador++;
+                }
                 if(servidor.isPrimario())
                     contador=0;
             }

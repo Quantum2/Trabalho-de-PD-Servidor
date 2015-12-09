@@ -30,8 +30,9 @@ public class Servidor implements Serializable{
     public static final int MAX_SIZE=10000;
     public String diretoria=null;
     public InetAddress group;
-    public int port;
+    public int TCPport;
     public ListaFicheiros listaFicheiros=null;
+    long tStart=0,tFinal=0;
     
     //threads
     public HeartbeatsRecebe heartRECV=null;
@@ -56,7 +57,7 @@ public class Servidor implements Serializable{
     
     public Servidor(String diretoria,int TCPport) throws UnknownHostException, IOException, InterruptedException 
     {      
-        port=TCPport;
+        this.TCPport=TCPport;
         this.diretoria=diretoria;    
         
         File folder = new File(diretoria);                        
@@ -134,10 +135,11 @@ public class Servidor implements Serializable{
 
                     ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
                     
-                    boolean msg = (boolean)recv.readObject();
-                    if (msg) {
+                    HeartBeat msg = (HeartBeat)recv.readObject();
+                    if (msg.getPrimario()) {
                         System.out.println("[SERVIDOR] Recebeu heartbeat primário");
-                        conectaServidorPrimario(packet.getAddress(), packet.getPort());
+                        tStart=System.currentTimeMillis();
+                        conectaServidorPrimario(packet.getAddress(), msg.getTcpPort()); //mudar o port para tcpport
                         break;
                     }
                 } catch (NumberFormatException e) {
@@ -275,7 +277,23 @@ public class Servidor implements Serializable{
         return group;
     }
     
-    public int getPort(){
-        return 7000;
+    public int getTcpPort(){
+        return TCPport;
+    }
+    
+    public long getTStart(){
+        return tStart;
+    }
+    
+    public long getTFinal(){
+        return tFinal;
+    }
+    
+    public void setTStart(long tStart){
+        this.tStart=tStart;
+    }
+    
+    public void setTFinal(long tFinal){
+        this.tFinal=tFinal;
     }
 }

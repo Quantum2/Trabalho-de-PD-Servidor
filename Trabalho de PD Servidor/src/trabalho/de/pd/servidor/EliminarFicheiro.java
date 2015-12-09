@@ -32,7 +32,7 @@ public class EliminarFicheiro extends Thread{
     
     @Override
     public void run() {
-        String dir=(""+servidor.getDiretoria()+"\\"+nomeFicheiro);
+        String dir=(servidor.getDiretoria());
         File file=new File(dir);
         file.delete();
     }

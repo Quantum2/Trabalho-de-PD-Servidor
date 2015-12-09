@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import static java.lang.Thread.sleep;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.MulticastSocket;
@@ -33,23 +34,12 @@ public class TrabalhoDePDServidor implements Serializable {
      */
     public static void main(String[] args) throws SocketException, IOException, UnknownHostException, InterruptedException {
         // TODO code application logic here
-        /*boolean flg=false;
-        int TCPport=5000;
-        do{
-            try{
-                Socket s=new Socket("127.0.0.1",TCPport);
-                s.close();
-                flg=true;
-            }catch(Exception e){
-                TCPport++;
-            }
-        }while(!flg);*/
         
-        String dir=(""+System.getProperty("user.dir")+"\\ServerFicheiros");
-        if(!new File(dir).exists()){
-            new File(dir).mkdir();
+        if(args.length!=2){
+             System.out.println("Argumentos errados");
+        }else{
+            Servidor s=new Servidor(args[0],Integer.parseInt(args[1])); //port 0 para qualquer uma
+            s.começa();          
         }
-        Servidor s=new Servidor(dir,5000); //port 0 para qualquer uma
-        s.começa();
     }
 }

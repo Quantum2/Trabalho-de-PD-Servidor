@@ -41,12 +41,13 @@ public class HeartbeatsEnvia extends Thread {
         System.out.println("Thread HearbeatEnvia a correr.....");
         do{
             try {
+                HeartBeat msg=new HeartBeat(servidor.getTcpPort(),servidor.isPrimario());
                 ByteArrayOutputStream byteout = new ByteArrayOutputStream();
                 ObjectOutputStream send = new ObjectOutputStream(byteout);
-                send.writeObject(servidor.isPrimario());
+                send.writeObject(msg);
                 send.flush();
                 
-                packet=new DatagramPacket(byteout.toByteArray(),byteout.size(),servidor.getGroup(),servidor.getPort());
+                packet=new DatagramPacket(byteout.toByteArray(),byteout.size(),servidor.getGroup(),7000);
                 servidor.getMulticastSocket().send(packet); //teste
                 send.close();
                 sleep(5000);

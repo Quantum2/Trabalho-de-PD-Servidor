@@ -32,7 +32,7 @@ public class RecebePedido extends Thread {
     
     @Override
     public void run() {
-        System.out.println("Thread RecebePedido a correr....");
+        System.out.println("Thread RecebePedido a correr...."); //falta diferenciar o primario e o secundario
         do {
             try {
                 Pedido pedido = null;
