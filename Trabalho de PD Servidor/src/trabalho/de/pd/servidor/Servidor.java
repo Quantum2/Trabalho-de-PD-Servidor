@@ -155,7 +155,7 @@ public class Servidor implements Serializable{
                 } finally {
                     contador++;
                     System.out.println("[SERVIDOR] Contador: " + contador);
-                    if (contador == 3) {
+                    if (contador == 3 && primarioSocketTCP==null) {
                         System.out.println("[SERVIDOR] Tornou-se servidor primário");
                         setPrimario(true);
                         break;
@@ -195,7 +195,7 @@ public class Servidor implements Serializable{
             
             heartENVIA=new HeartbeatsEnvia(this);
             heartENVIA.start();
-            serverSocketTCP.accept();
+            
             recebePedido=new RecebePedido(this);
             recebePedido.start();
             
