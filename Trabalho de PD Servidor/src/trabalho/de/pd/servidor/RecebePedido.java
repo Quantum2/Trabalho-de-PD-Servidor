@@ -52,7 +52,7 @@ public class RecebePedido extends Thread {
                     }
                 }
             } catch (IOException ex) {
-                Logger.getLogger(RecebePedido.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println("RecebePedido Timeout");
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(RecebePedido.class.getName()).log(Level.SEVERE, null, ex);
             }

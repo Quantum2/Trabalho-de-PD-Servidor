@@ -171,7 +171,7 @@ public class Servidor implements Serializable{
             } catch (InterruptedException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
-            //recomeça();
+            recomeça();
             System.out.println("[SERVIDOR] Vai recomeçar ciclo");
         }
     }
@@ -227,11 +227,13 @@ public class Servidor implements Serializable{
             heartENVIA.termina();
             heartENVIA.join();
             
-            recebeActualizacaoTCP.termina();
-            recebeActualizacaoTCP.join();
+            /*recebeActualizacaoTCP.termina();
+            recebeActualizacaoTCP.join();*/
             
             recebePedido.termina();
             recebePedido.join();
+            
+            this.primarioSocketTCP=null;
             
         } catch (InterruptedException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
