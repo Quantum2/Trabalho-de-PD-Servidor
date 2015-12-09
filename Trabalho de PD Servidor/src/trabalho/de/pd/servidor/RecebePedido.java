@@ -37,15 +37,16 @@ public class RecebePedido extends Thread {
             try {
                 Pedido pedido = null;
                 pedidosSocketTCP = servidor.getServerSocketTCP().accept();
+                System.out.println("[SERVIDOR] Aceitou conecção " + pedidosSocketTCP.getInetAddress().getHostAddress());
                 ObjectInputStream ois = new ObjectInputStream(pedidosSocketTCP.getInputStream());
                 pedido = (Pedido) ois.readObject();
-                if (pedido.getTipoPedido() == 1) {
+                if (pedido.getTipoPedido() == Pedido.DOWNLOAD) {
                     servidor.arrancaThreadEnviaFicheiro(pedidosSocketTCP, pedido);
                 } else {
-                    if (pedido.getTipoPedido() == 2) {
+                    if (pedido.getTipoPedido() == Pedido.UPLOAD) {
                         servidor.arrancaThreadRecebeFicheiro(pedidosSocketTCP);
                     } else {
-                        if (pedido.getTipoPedido() == 3) {
+                        if (pedido.getTipoPedido() == Pedido.ELIMINAR) {
                             servidor.arrancaThreadEliminaFicheiro(pedido);
                         }
                     }
