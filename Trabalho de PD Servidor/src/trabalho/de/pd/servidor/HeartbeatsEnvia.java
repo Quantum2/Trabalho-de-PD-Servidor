@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.SocketException;
 import java.util.logging.Level;
@@ -41,7 +42,7 @@ public class HeartbeatsEnvia extends Thread {
         System.out.println("Thread HearbeatEnvia a correr.....");
         do{
             try {
-                HeartBeat msg=new HeartBeat(servidor.getTcpPort(),servidor.isPrimario());
+                HeartBeat msg=new HeartBeat(servidor.getTcpPort(),servidor.isPrimario(),InetAddress.getByName(InetAddress.getLocalHost().getHostAddress()));
                 ByteArrayOutputStream byteout = new ByteArrayOutputStream();
                 ObjectOutputStream send = new ObjectOutputStream(byteout);
                 send.writeObject(msg);

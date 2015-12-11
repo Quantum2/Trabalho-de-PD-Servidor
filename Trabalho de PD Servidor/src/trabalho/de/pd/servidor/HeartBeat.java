@@ -6,6 +6,7 @@
 package trabalho.de.pd.servidor;
 
 import java.io.Serializable;
+import java.net.InetAddress;
 
 /**
  *
@@ -13,11 +14,14 @@ import java.io.Serializable;
  */
 public class HeartBeat implements Serializable{
     int tcpPort;
+    InetAddress endereço=null;
     boolean primario;
+    long tStart;
     
-    public HeartBeat(int tcpPort,boolean primario){
+    public HeartBeat(int tcpPort,boolean primario,InetAddress endereço){
         this.tcpPort=tcpPort;
         this.primario=primario;
+        this.endereço=endereço;
     }
     
     public int getTcpPort(){
@@ -26,5 +30,17 @@ public class HeartBeat implements Serializable{
     
     public boolean getPrimario(){
         return primario;
+    }
+    
+    public InetAddress getEndereço(){
+        return endereço;
+    }
+    
+    public long getTStart(){
+        return tStart;
+    }
+    
+    public void setTStart(long tStart){
+        this.tStart=tStart;
     }
 }
