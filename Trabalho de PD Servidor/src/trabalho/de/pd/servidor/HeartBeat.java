@@ -44,4 +44,17 @@ public class HeartBeat implements Serializable{
     public void setTStart(long tStart){
         this.tStart=tStart;
     }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this==o)
+            return true;
+        if (o instanceof HeartBeat) {
+            HeartBeat hb = (HeartBeat) o;
+            if (hb.getEndereço() == endereço && hb.getTcpPort() == tcpPort && hb.getPrimario() == primario) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

@@ -45,7 +45,9 @@ public class Servidor implements Serializable{
     
     //TCP
     public ServerSocket serverSocketTCP=null;
+    public ServerSocket serverSocketAtualizacao=null;
     public Socket primarioSocketTCP=null;
+    public Socket socketAtualizacao=null;
     
     //boolean
     private Boolean primario=null;
@@ -72,6 +74,7 @@ public class Servidor implements Serializable{
         //TCP  //nao sei se e o porto 7000 nao diz nada acho :S
         serverSocketTCP=new ServerSocket(TCPport);
         serverSocketTCP.setSoTimeout(5000);
+        
         
         //boolean
         primario=false;
