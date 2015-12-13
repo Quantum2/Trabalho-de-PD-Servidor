@@ -33,10 +33,10 @@ public class Ficheiro {
     public String getExtensao() {
         return extensao;
     }
-    
+    */
     @Override
     public String toString() {
-        return nome+"."+extensao;
+        return nome+"\t"+bytes+" bytes";
     }
-    */
+    
 }

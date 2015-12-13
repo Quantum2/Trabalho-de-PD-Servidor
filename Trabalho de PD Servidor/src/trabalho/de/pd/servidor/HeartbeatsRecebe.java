@@ -14,7 +14,6 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static trabalho.de.pd.servidor.Servidor.MAX_SIZE;
 
 /**
  *
@@ -30,6 +29,8 @@ public class HeartbeatsRecebe extends Thread{
     public InetAddress ipPrimario = null;
     public int portoPrimario = 0;
 
+    long lastPrimaryBeat;
+    
     public HeartbeatsRecebe(Servidor servidor) throws SocketException {
         this.servidor=servidor;
         running = true;
@@ -53,38 +54,51 @@ public class HeartbeatsRecebe extends Thread{
         HeartBeat msg=null;
         do {
             try {
-                msg=null;
+                msg = null;
                 packet = new DatagramPacket(new byte[MAX_SIZE], MAX_SIZE);
                 servidor.getMulticastSocket().receive(packet);
                 ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
                 msg = (HeartBeat) recv.readObject();
-                System.out.println("[SERVIDOR] Received Heartbeat " + packet.getAddress().getHostAddress() + " Tipo:" +msg.getPrimario());
-                if(msg.getPrimario()){
+                System.out.println("[SERVIDOR] Received Heartbeat " + packet.getAddress().getHostAddress() + " Tipo:" + msg.getPrimario());
+                if (msg.getPrimario() && servidor.isPrimario()) {
                     //compara ip dos dois primarios
-                    if(servidor.getServerSocketTCP().getInetAddress().getHostAddress().compareTo(packet.getAddress().getHostAddress())>0)
-                    {
+                    if (servidor.getServerSocketTCP().getInetAddress().getHostAddress().compareTo(packet.getAddress().getHostAddress()) > 0) {
                         servidor.setPrimario(false);
                     }
-                    servidor.setTStart(System.currentTimeMillis());
+                }
+                if (msg.getPrimario()) {
+                    lastPrimaryBeat = System.currentTimeMillis();
                 }
             } catch (NumberFormatException e) {
                 System.out.println("O porto de escuta deve ser um inteiro positivo.");
             } catch (SocketException e) {
                 System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
             } catch (SocketTimeoutException e) {
-
+                System.out.println("Timeout\n\t");
             } catch (IOException e) {
                 System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
-                if(msg==null || msg.getPrimario()==false){
+                try {
+                    /*
+                    if(msg==null || msg.getPrimario()==false){
                     servidor.setTFinal(System.currentTimeMillis());
                     if(((servidor.getTFinal()-servidor.getTStart())/1000.0)>5)
-                        contador++;
-                }
-                if(servidor.isPrimario())
+                    contador++;
+                    }
+                    if(servidor.isPrimario())
                     contador=0;
+                    */
+                    sleep(100);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(HeartbeatsRecebe.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                long auxTempo = System.currentTimeMillis();
+                long resultado = auxTempo-lastPrimaryBeat;
+                if (resultado / 1000.0 > 15) {
+                    break;
+                }
             }
         } while (contador!=3 && running);
     }

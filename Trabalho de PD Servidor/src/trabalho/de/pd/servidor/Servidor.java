@@ -12,7 +12,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.ServerSocket;
@@ -43,8 +42,6 @@ public class Servidor implements Serializable{
     
     //UDP
     protected MulticastSocket multicastSocketUDP=null;
-    private DatagramPacket RecvpacketUDP=null;
-    private DatagramSocket SocketComDiretoria=null;
     
     //TCP
     public ServerSocket serverSocketTCP=null;
@@ -52,8 +49,6 @@ public class Servidor implements Serializable{
     
     //boolean
     private Boolean primario=null;
-    
-    private boolean debug;
     
     public Servidor(String diretoria,int TCPport) throws UnknownHostException, IOException, InterruptedException 
     {      
@@ -66,11 +61,9 @@ public class Servidor implements Serializable{
         for(File ficheiro : arrayFicheiros){
             Ficheiro ficheiroTemp=new Ficheiro(ficheiro.getName(),ficheiro.length());
             listaFicheiros.addFicheiro(ficheiroTemp);
+            System.out.println(ficheiroTemp.toString());
         }
-        
-        //UDP
-        SocketComDiretoria=new DatagramSocket();
-        
+                
         group=InetAddress.getByName("225.15.15.15");
         multicastSocketUDP = new MulticastSocket(7000);
         multicastSocketUDP.joinGroup(group);
@@ -200,8 +193,6 @@ public class Servidor implements Serializable{
             recebePedido.start();
             
         } catch (SocketException ex) {
-            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
