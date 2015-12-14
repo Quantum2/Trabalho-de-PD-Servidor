@@ -51,23 +51,26 @@ public class HeartbeatsRecebe extends Thread{
     @Override
     public void run()  {   //falta fazer quando ha mais do que 1 primario && o fazer o tempo de 5 segundos a espera e nao com o timeout
         System.out.println("Thread HeartbeatsRecebe a correr...");
-        HeartBeat msg=null;
+        Object msgO=null;
         do {
             try {
-                msg = null;
+                msgO = null;
                 packet = new DatagramPacket(new byte[MAX_SIZE], MAX_SIZE);
                 servidor.getMulticastSocket().receive(packet);
                 ObjectInputStream recv = new ObjectInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
-                msg = (HeartBeat) recv.readObject();
-                System.out.println("[SERVIDOR] Received Heartbeat " + packet.getAddress().getHostAddress() + " Tipo:" + msg.getPrimario());
-                if (msg.getPrimario() && servidor.isPrimario()) {
-                    //compara ip dos dois primarios
-                    if (servidor.getServerSocketTCP().getInetAddress().getHostAddress().compareTo(packet.getAddress().getHostAddress()) > 0) {
-                        servidor.setPrimario(false);
+                msgO = (Object) recv.readObject();
+                if (msgO instanceof HeartBeat) {
+                    HeartBeat msg = (HeartBeat) msgO;
+                    System.out.println("[SERVIDOR] Received Heartbeat " + packet.getAddress().getHostAddress() + " Tipo:" + msg.getPrimario());
+                    if (msg.getPrimario() && servidor.isPrimario()) {
+                        //compara ip dos dois primarios
+                        if (servidor.getServerSocketTCP().getInetAddress().getHostAddress().compareTo(packet.getAddress().getHostAddress()) > 0) {
+                            servidor.setPrimario(false);
+                        }
                     }
-                }
-                if (msg.getPrimario()) {
-                    lastPrimaryBeat = System.currentTimeMillis();
+                    if (msg.getPrimario()) {
+                        lastPrimaryBeat = System.currentTimeMillis();
+                    }
                 }
             } catch (NumberFormatException e) {
                 System.out.println("O porto de escuta deve ser um inteiro positivo.");

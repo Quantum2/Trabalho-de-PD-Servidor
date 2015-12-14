@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import static java.lang.Thread.sleep;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -188,13 +189,10 @@ public class Servidor implements Serializable{
         try {
             heartRECV=new HeartbeatsRecebe(this);
             heartRECV.start();
-            
             heartENVIA=new HeartbeatsEnvia(this);
             heartENVIA.start();
-            
             recebePedido=new RecebePedido(this);
             recebePedido.start();
-            
         } catch (SocketException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
