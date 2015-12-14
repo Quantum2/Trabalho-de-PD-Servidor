@@ -51,7 +51,7 @@ public class HeartBeat implements Serializable{
             return true;
         if (o instanceof HeartBeat) {
             HeartBeat hb = (HeartBeat) o;
-            if (hb.getEndereço() == endereço && hb.getTcpPort() == tcpPort && hb.getPrimario() == primario) {
+            if (hb.getEndereço().getHostAddress().equals(endereço.getHostAddress()) && hb.getTcpPort() == tcpPort && hb.getPrimario() == primario) {
                 return true;
             }
         }
