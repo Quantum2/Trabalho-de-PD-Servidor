@@ -20,6 +20,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
@@ -34,12 +35,16 @@ public class Servidor implements Serializable{
     public ListaFicheiros listaFicheiros=null;
     long tStart=0,tFinal=0;
     
+    ArrayList<Socket> socketsConeccoes = new ArrayList<>();
+    ArrayList<RecebePedido> threadsPedido = new ArrayList<>();
+    
     //threads
     public HeartbeatsRecebe heartRECV=null;
     public HeartbeatsEnvia heartENVIA=null;
     public RecebeActualizacaoTCP recebeActualizacaoTCP=null;
     public RecebeActualizacaoTCP RcActualizacaoTCP=null;
     public RecebePedido recebePedido=null;
+    public TrataCliente trataCliente=null;
     
     //UDP
     protected MulticastSocket multicastSocketUDP=null;
@@ -191,11 +196,19 @@ public class Servidor implements Serializable{
             heartRECV.start();
             heartENVIA=new HeartbeatsEnvia(this);
             heartENVIA.start();
-            recebePedido=new RecebePedido(this);
-            recebePedido.start();
+            trataCliente=new TrataCliente(this);
+            trataCliente.start();
         } catch (SocketException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public void addEscuta(Socket socket) {
+        socketsConeccoes.add(socket);
+        RecebePedido thread = new RecebePedido(this,socket);
+        thread.start();
+        threadsPedido.add(thread);
+        
     }
     
     public void arrancaThreadEnviaFicheiro(Socket pedidosSocketTCP,Pedido pedido){
@@ -224,6 +237,9 @@ public class Servidor implements Serializable{
             
             recebePedido.termina();
             recebePedido.join();
+            
+            trataCliente.termina();
+            trataCliente.join();
             
             this.primarioSocketTCP=null;
             

@@ -17,12 +17,14 @@ import java.util.logging.Logger;
  */
 public class RecebePedido extends Thread {
     
+    Pedido pedido;
     Servidor servidor = null;
-    Socket pedidosSocketTCP = null;
+    Socket socket = null;
     Boolean running = null;
     
-    public RecebePedido(Servidor servidor) {
+    public RecebePedido(Servidor servidor,Socket socket) {
         this.servidor = servidor;
+        this.socket = socket;
         running = true;
     }
     
@@ -35,21 +37,20 @@ public class RecebePedido extends Thread {
         System.out.println("Thread RecebePedido a correr...."); //falta diferenciar o primario e o secundario
         do {
             try {
-                Pedido pedido = null;
-                pedidosSocketTCP = servidor.getServerSocketTCP().accept();
-                System.out.println("[SERVIDOR] Aceitou conecção " + pedidosSocketTCP.getInetAddress().getHostAddress());
-                ObjectInputStream ois = new ObjectInputStream(pedidosSocketTCP.getInputStream());
+                ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 pedido = (Pedido) ois.readObject();
-                if (pedido.getTipoPedido() == Pedido.DOWNLOAD) {
-                    servidor.arrancaThreadEnviaFicheiro(pedidosSocketTCP, pedido);
-                } else {
-                    if (pedido.getTipoPedido() == Pedido.UPLOAD) {
-                        servidor.arrancaThreadRecebeFicheiro(pedidosSocketTCP);
-                    } else {
-                        if (pedido.getTipoPedido() == Pedido.ELIMINAR) {
-                            servidor.arrancaThreadEliminaFicheiro(pedido);
-                        }
-                    }
+                switch (pedido.getTipoPedido()) {
+                    case Pedido.DOWNLOAD:
+                        servidor.arrancaThreadEnviaFicheiro(socket, pedido);
+                        break;
+                    case Pedido.UPLOAD:
+                        servidor.arrancaThreadRecebeFicheiro(socket);
+                        break;           
+                    case Pedido.ELIMINAR:
+                        servidor.arrancaThreadEliminaFicheiro(pedido);
+                        break;
+                    default:
+                        break;
                 }
             } catch (IOException ex) {
                 System.out.println("RecebePedido Timeout");
