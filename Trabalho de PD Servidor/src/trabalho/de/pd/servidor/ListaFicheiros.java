@@ -5,13 +5,14 @@
  */
 package trabalho.de.pd.servidor;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  *
  * @author Carlos Oliveira
  */
-public class ListaFicheiros {
+public class ListaFicheiros implements Serializable{
     ArrayList<Ficheiro> listaFicheiros = new ArrayList<Ficheiro>();
     
     public ListaFicheiros(){

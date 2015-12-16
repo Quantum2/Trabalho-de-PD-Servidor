@@ -28,7 +28,7 @@ public class TrataSecundario extends Thread{
     
     @Override
     public void run() {
-        System.out.println("Thread TrataCliente a correr..");
+        System.out.println("Thread TrataSecundario a correr..");
         do {
             try {
                 pedidosSocketSecundario = servidor.getServerSocketSecundario().accept();

@@ -45,7 +45,6 @@ public class Servidor implements Serializable{
     public HeartbeatsEnvia heartENVIA=null;
     public RecebeActualizacaoTCP recebeActualizacaoTCP=null;
     public RecebeActualizacaoTCP RcActualizacaoTCP=null;
-    public RecebePedidoCliente recebePedido=null;
     public TrataCliente trataCliente=null;
     public TrataSecundario trataSecundario=null;
     
@@ -98,7 +97,7 @@ public class Servidor implements Serializable{
     
     public void conectaServidorPrimario(InetAddress addr,int port){
         try {
-            this.primarioSocketTCP=new Socket(addr,port);
+            this.primarioSocketTCP=new Socket(addr,port+1);
             this.primarioSocketTCP.setSoTimeout(5000);
         } catch (IOException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -262,14 +261,11 @@ public class Servidor implements Serializable{
             heartENVIA.termina();
             heartENVIA.join();
             
-            /*recebeActualizacaoTCP.termina();
-            recebeActualizacaoTCP.join();*/
-            
-            recebePedido.termina();
-            recebePedido.join();
-            
             trataCliente.termina();
             trataCliente.join();
+            
+            trataSecundario.termina();
+            trataSecundario.join();
             
             this.primarioSocketTCP=null;
             
