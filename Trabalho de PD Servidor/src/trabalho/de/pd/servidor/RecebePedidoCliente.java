@@ -17,14 +17,14 @@ import java.util.logging.Logger;
  *
  * @author ASUS
  */
-public class RecebePedido extends Thread {
+public class RecebePedidoCliente extends Thread {
     
     Pedido pedido;
     Servidor servidor = null;
     Socket socket = null;
     Boolean running = null;
     
-    public RecebePedido(Servidor servidor,Socket socket) {
+    public RecebePedidoCliente(Servidor servidor,Socket socket) {
         this.servidor = servidor;
         this.socket = socket;
         running = true;
@@ -36,26 +36,21 @@ public class RecebePedido extends Thread {
     
     @Override
     public void run() {
-        System.out.println("Thread RecebePedido a correr...."); //falta diferenciar o primario e o secundario
+        System.out.println("[SERVIDOR] Thread RecebePedidoCliente - " + socket.getInetAddress().getHostAddress() + ":"
+                + socket.getLocalPort());
         do {
             try {
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 pedido = (Pedido) ois.readObject();
                 switch (pedido.getTipoPedido()) {
                     case Pedido.DOWNLOAD:
-                        if(pedido.getSocketCliente()==null)
                             servidor.arrancaThreadEnviaFicheiro(socket, pedido);
-                        else
-                            servidor.arrancaThreadEnviaFicheiro(pedido, pedido);
                         break;
                     case Pedido.UPLOAD:
-                        if(pedido.getSocketCliente()==null)
                             servidor.arrancaThreadRecebeFicheiro(socket);
-                        else
-                            servidor.arrancaThreadRecebeFicheiro(pedido.getSocketCliente());
                         break;           
                     case Pedido.ELIMINAR:
-                        servidor.arrancaThreadEliminaFicheiro(pedido);
+                            servidor.arrancaThreadEliminaFicheiro(pedido);
                         break;
                     case Pedido.ACTUALIZACAO:
                         ObjectOutputStream oos=new ObjectOutputStream(socket.getOutputStream());
@@ -73,7 +68,7 @@ public class RecebePedido extends Thread {
             } catch (IOException ex) {
                 System.out.println("RecebePedido Timeout");
             } catch (ClassNotFoundException ex) {
-                Logger.getLogger(RecebePedido.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
             }
         } while (running);
     }

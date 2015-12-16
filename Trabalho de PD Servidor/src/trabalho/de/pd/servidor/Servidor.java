@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import static java.lang.Thread.sleep;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -35,23 +34,26 @@ public class Servidor implements Serializable{
     public ListaFicheiros listaFicheiros=null;
     long tStart=0,tFinal=0;
     
-    ArrayList<Socket> socketsConeccoes = new ArrayList<>();
-    ArrayList<RecebePedido> threadsPedido = new ArrayList<>();
+    //Arrays dos sockets a serem usados nas threads
+    ArrayList<Socket> socketsClientes = new ArrayList<>();
+    ArrayList<Socket> socketsSecundarios = new ArrayList<>();
+    ArrayList<RecebePedidoCliente> threadsPedidoCliente = new ArrayList<>();
+    ArrayList<RecebePedidoSecundario> threadsPedidoSecundario = new ArrayList<>();
     
     //threads
     public HeartbeatsRecebe heartRECV=null;
     public HeartbeatsEnvia heartENVIA=null;
     public RecebeActualizacaoTCP recebeActualizacaoTCP=null;
     public RecebeActualizacaoTCP RcActualizacaoTCP=null;
-    public RecebePedido recebePedido=null;
+    public RecebePedidoCliente recebePedido=null;
     public TrataCliente trataCliente=null;
     
     //UDP
     protected MulticastSocket multicastSocketUDP=null;
     
     //TCP
-    public ServerSocket serverSocketTCP=null;
-    public ServerSocket serverSocketAtualizacao=null;
+    public ServerSocket serverSocketCliente=null;
+    public ServerSocket serverSocketSecundario=null;
     public Socket primarioSocketTCP=null;
     public Socket socketAtualizacao=null;
     
@@ -78,8 +80,8 @@ public class Servidor implements Serializable{
         multicastSocketUDP.setSoTimeout(5000);
         
         //TCP
-        serverSocketTCP=new ServerSocket(TCPport);
-        serverSocketTCP.setSoTimeout(5000);
+        serverSocketCliente=new ServerSocket(TCPport);
+        serverSocketCliente.setSoTimeout(5000);
         
         
         //boolean
@@ -203,16 +205,22 @@ public class Servidor implements Serializable{
         }
     }
     
-    public void addEscuta(Socket socket) {
-        socketsConeccoes.add(socket);
-        RecebePedido thread = new RecebePedido(this,socket);
+    public void addEscutaCliente(Socket socket) {
+        socketsClientes.add(socket);
+        RecebePedidoCliente thread = new RecebePedidoCliente(this,socket);
         thread.start();
-        threadsPedido.add(thread);
-        
+        threadsPedidoCliente.add(thread);
     }
     
-    public void arrancaThreadEnviaFicheiro(Socket pedidosSocketTCP,Pedido pedido){
-        EnviaFicheiro enviaFicheiro=new EnviaFicheiro(this,pedidosSocketTCP,pedido.getNomeFicheiro());
+    public void addEscutaSecundario(Socket socket) {
+        socketsSecundarios.add(socket);
+        RecebePedidoSecundario thread = new RecebePedidoSecundario(this,socket);
+        thread.start();
+        threadsPedidoSecundario.add(thread);
+    }
+    
+    public void arrancaThreadEnviaFicheiro(Socket socket,Pedido pedido){
+        EnviaFicheiro enviaFicheiro=new EnviaFicheiro(this,socket,pedido.getNomeFicheiro());
         enviaFicheiro.start();
     }
     
@@ -281,8 +289,12 @@ public class Servidor implements Serializable{
         this.listaFicheiros=listaFicheiros;
     }
     
-    public ServerSocket getServerSocketTCP(){
-        return serverSocketTCP;
+    public ServerSocket getServerSocketCliente(){
+        return serverSocketCliente;
+    }
+    
+    public ServerSocket getServerSocketSecundario() {
+        return serverSocketSecundario;
     }
     
     public InetAddress getGroup(){
@@ -309,7 +321,7 @@ public class Servidor implements Serializable{
         this.tFinal=tFinal;
     }
     
-    public ArrayList<Socket> getSocketsConeccoes(){
-        return socketsConeccoes;
+    public ArrayList<Socket> getSocketsClientes(){
+        return socketsClientes;
     }
 }

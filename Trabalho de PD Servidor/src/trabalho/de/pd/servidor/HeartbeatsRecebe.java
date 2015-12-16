@@ -64,7 +64,7 @@ public class HeartbeatsRecebe extends Thread{
                     System.out.println("[SERVIDOR] Received Heartbeat " + packet.getAddress().getHostAddress() + " Tipo:" + msg.getPrimario());
                     if (msg.getPrimario() && servidor.isPrimario()) {
                         //compara ip dos dois primarios
-                        if (servidor.getServerSocketTCP().getInetAddress().getHostAddress().compareTo(packet.getAddress().getHostAddress()) > 0) {
+                        if (servidor.getServerSocketCliente().getInetAddress().getHostAddress().compareTo(packet.getAddress().getHostAddress()) > 0) {
                             servidor.setPrimario(false);
                         }
                     }

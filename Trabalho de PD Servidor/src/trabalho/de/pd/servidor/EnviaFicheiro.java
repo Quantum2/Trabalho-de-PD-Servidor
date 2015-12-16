@@ -33,7 +33,6 @@ public class EnviaFicheiro extends Thread {
     public void run() {
         FileInputStream fileIn = null;
         try {
-            
             int nbytes;
             byte [] filechunck = new byte [Servidor.MAX_SIZE];
             OutputStream outputFicheiro = socketPedido.getOutputStream();

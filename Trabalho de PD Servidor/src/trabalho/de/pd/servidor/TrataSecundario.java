@@ -11,13 +11,13 @@ import java.net.Socket;
  *
  * @author Carlos Oliveira
  */
-public class TrataCliente extends Thread{
+public class TrataSecundario extends Thread{
 
     Servidor servidor = null;
-    Socket pedidosSocketCliente = null;
+    Socket pedidosSocketSecundario = null;
     Boolean running = null;
     
-    public TrataCliente(Servidor servidor) {
+    public TrataSecundario(Servidor servidor) {
         this.servidor = servidor;
         running = true;
     }
@@ -31,12 +31,12 @@ public class TrataCliente extends Thread{
         System.out.println("Thread TrataCliente a correr..");
         do {
             try {
-                pedidosSocketCliente = servidor.getServerSocketCliente().accept();
-                System.out.println("[SERVIDOR] Aceitou conecção " + pedidosSocketCliente.getInetAddress().getHostAddress());
-                servidor.addEscutaCliente(pedidosSocketCliente);
+                pedidosSocketSecundario = servidor.getServerSocketSecundario().accept();
+                System.out.println("[SERVIDOR] Aceitou conecção " + pedidosSocketSecundario.getInetAddress().getHostAddress());
+                servidor.addEscutaSecundario(pedidosSocketSecundario);
             } catch (IOException ex) {
-                System.err.println("[SERVIDOR] A fazer accept pedido socket cliente - " + ex);
+                System.err.println("[SERVIDOR] A fazer accept pedido socket servidor secundário - " + ex);
             }
         } while (running);
-    }    
+    }
 }
