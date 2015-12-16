@@ -83,6 +83,8 @@ public class Servidor implements Serializable{
         //TCP
         serverSocketCliente=new ServerSocket(TCPport);
         serverSocketCliente.setSoTimeout(5000);
+        serverSocketSecundario=new ServerSocket(TCPport+1);
+        serverSocketSecundario.setSoTimeout(5000);
         
         
         //boolean
