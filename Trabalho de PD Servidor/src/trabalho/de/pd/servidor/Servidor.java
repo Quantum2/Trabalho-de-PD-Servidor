@@ -47,6 +47,7 @@ public class Servidor implements Serializable{
     public RecebeActualizacaoTCP RcActualizacaoTCP=null;
     public RecebePedidoCliente recebePedido=null;
     public TrataCliente trataCliente=null;
+    public TrataSecundario trataSecundario=null;
     
     //UDP
     protected MulticastSocket multicastSocketUDP=null;
@@ -180,6 +181,23 @@ public class Servidor implements Serializable{
         }
     }
     
+    public void enviaListaFicheiros(Socket socket) {
+        ObjectOutputStream oos = null;
+        try {
+            oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.writeObject(listaFicheiros);
+            oos.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                oos.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
     public void arrancaThreads()
     {
         /*
@@ -200,6 +218,8 @@ public class Servidor implements Serializable{
             heartENVIA.start();
             trataCliente=new TrataCliente(this);
             trataCliente.start();
+            trataSecundario=new TrataSecundario(this);
+            trataSecundario.start();
         } catch (SocketException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }

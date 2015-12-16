@@ -38,6 +38,7 @@ public class RecebePedidoCliente extends Thread {
     public void run() {
         System.out.println("[SERVIDOR] Thread RecebePedidoCliente - " + socket.getInetAddress().getHostAddress() + ":"
                 + socket.getLocalPort());
+        servidor.enviaListaFicheiros(socket);
         do {
             try {
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
