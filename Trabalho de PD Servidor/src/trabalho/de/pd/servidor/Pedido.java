@@ -5,6 +5,8 @@
  */
 package trabalho.de.pd.servidor;
 
+import java.net.Socket;
+
 /**
  *
  * @author Carlos Oliveira
@@ -17,14 +19,18 @@ public class Pedido {
     public final static int DOWNLOAD = 1;
     public final static int UPLOAD = 2;
     public final static int ELIMINAR = 3;
+    public final static int ACTUALIZACAO = 4;
     
     //inclui .extensão
     private String nomeFicheiro;
     private int tipoPedido;
+    private boolean cliente;
+    private Socket socketCliente=null;
     
-    public Pedido (String nomeFicheiro, int tipoPedido) {
+    public Pedido (String nomeFicheiro, int tipoPedido,boolean cliente) {
         this.nomeFicheiro=nomeFicheiro;
         this.tipoPedido=tipoPedido;
+        this.cliente=cliente;
     }
     
     public String getNomeFicheiro() {
@@ -33,5 +39,17 @@ public class Pedido {
     
     public int getTipoPedido() {
         return tipoPedido;
+    }
+    
+    public boolean getIsCliente(){
+        return cliente;
+    }
+    
+    public void setSocketCliente(Socket socket){
+        socketCliente=socket;
+    }
+    
+    public Socket getSocketCliente(){
+        return socketCliente;
     }
 }

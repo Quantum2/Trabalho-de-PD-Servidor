@@ -40,6 +40,18 @@ public class TrataCliente extends Thread{
                 System.out.println("[SERVIDOR] Aceitou conecção " + pedidosSocketTCP.getInetAddress().getHostAddress());
                 ObjectInputStream ois = new ObjectInputStream(pedidosSocketTCP.getInputStream());
                 pedido = (Pedido) ois.readObject();
+                if(pedido.getIsCliente()==false){
+                    boolean flg=false;
+                    for(int i=0;i<servidor.getSocketsConeccoes().size();i++){
+                        if(servidor.getSocketsConeccoes().get(i)==pedidosSocketTCP){
+                            flg=true;
+                        }
+                    }
+                    if(!flg){
+                        servidor.getSocketsConeccoes().add(pedidosSocketTCP);
+                    }
+                }
+                
                 if (pedido.getTipoPedido() == Pedido.DOWNLOAD) {
                     servidor.arrancaThreadEnviaFicheiro(pedidosSocketTCP, pedido);
                 } else {

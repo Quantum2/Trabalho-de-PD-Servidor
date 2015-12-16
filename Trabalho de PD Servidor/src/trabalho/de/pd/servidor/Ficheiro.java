@@ -10,15 +10,24 @@ package trabalho.de.pd.servidor;
  * @author Carlos Oliveira
  */
 public class Ficheiro {
+    public final static int UPLOAD = 2;
+    public final static int ELIMINAR = 3;
+    
     String nome;
+    int pedido;
     long bytes;
     //Poderá ser útil, mas usar sempre o nome do ficheiro com a extensão será melhor
     //String extensao;
     
-    Ficheiro(String nome,long bytes/*,String extensao*/) {
+    Ficheiro(String nome,long bytes,int pedido/*,String extensao*/) {
         this.nome=nome;
         this.bytes=bytes;
+        this.pedido=pedido;
         //this.extensao=extensao;
+    }
+    
+    public int getPedido(){
+        return pedido;
     }
     
     public String getNome() {

@@ -67,7 +67,7 @@ public class Servidor implements Serializable{
         File[] arrayFicheiros = folder.listFiles();
         listaFicheiros=new ListaFicheiros();
         for(File ficheiro : arrayFicheiros){
-            Ficheiro ficheiroTemp=new Ficheiro(ficheiro.getName(),ficheiro.length());
+            Ficheiro ficheiroTemp=new Ficheiro(ficheiro.getName(),ficheiro.length(),0);
             listaFicheiros.addFicheiro(ficheiroTemp);
             System.out.println(ficheiroTemp.toString());
         }
@@ -77,7 +77,7 @@ public class Servidor implements Serializable{
         multicastSocketUDP.joinGroup(group);
         multicastSocketUDP.setSoTimeout(5000);
         
-        //TCP  //nao sei se e o porto 7000 nao diz nada acho :S
+        //TCP
         serverSocketTCP=new ServerSocket(TCPport);
         serverSocketTCP.setSoTimeout(5000);
         
@@ -113,7 +113,7 @@ public class Servidor implements Serializable{
             for (Ficheiro ficheiro : listaFicheiros.getArrayListFicheiro()) {
                 RecebeActualizacaoTCP recebeFicheiro = new RecebeActualizacaoTCP(this);
                 recebeFicheiro.start();
-                oos.writeObject(new Pedido(ficheiro.getNome(),Pedido.DOWNLOAD));
+                oos.writeObject(new Pedido(ficheiro.getNome(),Pedido.DOWNLOAD,false));
                 oos.flush();
             }
             
@@ -222,7 +222,7 @@ public class Servidor implements Serializable{
     }
     
     public void arrancaThreadEliminaFicheiro(Pedido pedido){
-        EliminarFicheiro eliminarFicheiro=new EliminarFicheiro(this,pedido.getNomeFicheiro());
+        EliminarFicheiro eliminarFicheiro=new EliminarFicheiro(this,pedido);
         eliminarFicheiro.start();
     }
     
@@ -307,5 +307,9 @@ public class Servidor implements Serializable{
     
     public void setTFinal(long tFinal){
         this.tFinal=tFinal;
+    }
+    
+    public ArrayList<Socket> getSocketsConeccoes(){
+        return socketsConeccoes;
     }
 }

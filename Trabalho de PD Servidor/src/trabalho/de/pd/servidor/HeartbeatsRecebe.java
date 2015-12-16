@@ -83,8 +83,7 @@ public class HeartbeatsRecebe extends Thread{
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
-                try {
-                    /*
+                /*try {
                     if(msg==null || msg.getPrimario()==false){
                     servidor.setTFinal(System.currentTimeMillis());
                     if(((servidor.getTFinal()-servidor.getTStart())/1000.0)>5)
@@ -92,11 +91,10 @@ public class HeartbeatsRecebe extends Thread{
                     }
                     if(servidor.isPrimario())
                     contador=0;
-                    */
                     sleep(100);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(HeartbeatsRecebe.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                }*/
                 long auxTempo = System.currentTimeMillis();
                 long resultado = auxTempo-lastPrimaryBeat;
                 if (resultado / 1000.0 > 15) {

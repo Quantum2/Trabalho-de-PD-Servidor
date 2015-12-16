@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,11 +22,11 @@ import java.util.logging.Logger;
  */
 public class RecebeActualizacaoTCP extends Thread {
 
-    public static final int MAX_SIZE=256;
+    public static final int MAX_SIZE = 256;
     public boolean flg, running;
-    
+
     Servidor servidor = null;
-    
+
     InputStream inputStreamFicheiro = null;
 
     public RecebeActualizacaoTCP(Servidor servidor) throws IOException {
@@ -33,48 +35,85 @@ public class RecebeActualizacaoTCP extends Thread {
         running = true;
     }
 
-    public void actualizaListaFicheiros(){
-        File folder = new File(servidor.getDiretoria());                        
+    public void actualizaListaFicheiros() {
+        File folder = new File(servidor.getDiretoria() + "\\ServerFicheiros");
         File[] arrayFicheiros = folder.listFiles();
         servidor.setListaFicheiros(new ListaFicheiros());
-        for(File ficheiro : arrayFicheiros){
-            Ficheiro ficheiroTemp=new Ficheiro(ficheiro.getName(),ficheiro.length());
+        for (File ficheiro : arrayFicheiros) {
+            Ficheiro ficheiroTemp = new Ficheiro(ficheiro.getName(), ficheiro.length(),0);
             servidor.getListaFicheiros().addFicheiro(ficheiroTemp);
         }
     }
-    
+
     public void termina() {
         running = false;
     }
-    
+
     @Override
-    public void run() {//tem que se ver as melhores formas de mandar e receber ficheiros
-        while (running) {
+    public void run() {
+        if (!servidor.isPrimario()) {
             try {
                 ObjectInputStream ois = new ObjectInputStream(servidor.getPrimarioSocketTCP().getInputStream());
-                ListaFicheiros primarioListaFicheiros = (ListaFicheiros) ois.readObject();
+                Object msg = ois.readObject();
 
-                for (int i = 0; i < primarioListaFicheiros.getArrayListFicheiro().size(); i++) {
-                    flg = true;
-                    for (int j = 0; j < servidor.getListaFicheiros().getSize(); j++) {
-                        if (primarioListaFicheiros.getArrayListFicheiro().get(i).getNome().equals(servidor.getListaFicheiros().getArrayListFicheiro().get(j).getNome())) {
-                            flg = false;
+                if (msg instanceof ListaFicheiros) {
+                    ListaFicheiros primarioListaFicheiros = (ListaFicheiros) msg;
+
+                    for (int i = 0; i < primarioListaFicheiros.getArrayListFicheiro().size(); i++) {
+                        flg = true;
+                        for (int j = 0; j < servidor.getListaFicheiros().getSize(); j++) {
+                            if (primarioListaFicheiros.getArrayListFicheiro().get(i).getNome().equals(servidor.getListaFicheiros().getArrayListFicheiro().get(j).getNome())) {
+                                flg = false;
+                            }
+                        }
+                        ObjectOutputStream pedeFicheiro = new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
+                        if (flg) {
+                            Pedido p = new Pedido(primarioListaFicheiros.getArrayListFicheiro().get(i).getNome(), Pedido.DOWNLOAD,false);
+                            pedeFicheiro.writeObject(p);
+
+                            int nbytes;
+                            byte[] filechunck = new byte[MAX_SIZE];
+                            FileOutputStream fOut = new FileOutputStream(servidor.diretoria);
+                            while ((nbytes = inputStreamFicheiro.read(filechunck)) > 0) {
+                                fOut.write(filechunck, 0, nbytes);
+                            }
                         }
                     }
-                    ObjectOutputStream pedeFicheiro = new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
-                    if (flg) {
-                        Pedido p = new Pedido(primarioListaFicheiros.getArrayListFicheiro().get(i).getNome(), Pedido.DOWNLOAD);
-                        pedeFicheiro.writeObject(p);
+                    actualizaListaFicheiros();
+                } else {
+                    if (msg instanceof Ficheiro) {
+                        ObjectOutputStream oos = new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
+                        Ficheiro ficheiro = (Ficheiro) msg;
+                        File file = new File(servidor.getDiretoria() + "\\ServerFicheiros\\" + ficheiro.getNome());
+                        if (ficheiro.pedido == Ficheiro.ELIMINAR) {
+                            oos.writeBoolean(file.canRead());
+                            oos.flush();
+                        }
+                        if (ficheiro.pedido == Ficheiro.UPLOAD) {
+                            oos.writeBoolean(!file.exists());
+                            oos.flush();
+                        }
+                        Boolean confirma;
+                        confirma = ois.readBoolean();
+                        if (confirma == true) {
+                            if (ficheiro.pedido == Ficheiro.ELIMINAR) {
+                                file.delete();
+                            }
+                            if (ficheiro.pedido == Ficheiro.UPLOAD) {
+                                Pedido p = new Pedido(file.getName(), 1,false);
+                                oos.writeObject(p);
+                                oos.flush();
 
-                        int nbytes;
-                        byte[] filechunck = new byte[MAX_SIZE];
-                        FileOutputStream fOut = new FileOutputStream(servidor.diretoria);
-                        while ((nbytes = inputStreamFicheiro.read(filechunck)) > 0) {
-                            fOut.write(filechunck, 0, nbytes);
+                                int nbytes;
+                                byte[] filechunck = new byte[MAX_SIZE];
+                                FileOutputStream fOut = new FileOutputStream(servidor.diretoria);
+                                while ((nbytes = inputStreamFicheiro.read(filechunck)) > 0) {
+                                    fOut.write(filechunck, 0, nbytes);
+                                }
+                            }
                         }
                     }
                 }
-                actualizaListaFicheiros();
             } catch (IOException ex) {
                 Logger.getLogger(RecebeActualizacaoTCP.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
