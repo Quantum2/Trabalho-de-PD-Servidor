@@ -81,25 +81,25 @@ public class RecebeActualizacaoTCP extends Thread {
                     }
                     actualizaListaFicheiros();
                 } else {
-                    if (msg instanceof Ficheiro) {
+                    if (msg instanceof Pedido) {
                         ObjectOutputStream oos = new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
-                        Ficheiro ficheiro = (Ficheiro) msg;
-                        File file = new File(servidor.getDiretoria() + "\\ServerFicheiros\\" + ficheiro.getNome());
-                        if (ficheiro.pedido == Ficheiro.ELIMINAR) {
+                        Pedido pedido = (Pedido) msg;
+                        File file = new File(servidor.getDiretoria() + "\\ServerFicheiros\\" + pedido.getNomeFicheiro());
+                        if (pedido.getTipoPedido() == Pedido.ELIMINAR) {
                             oos.writeBoolean(file.canRead());
                             oos.flush();
                         }
-                        if (ficheiro.pedido == Ficheiro.UPLOAD) {
+                        if (pedido.getTipoPedido() == Pedido.UPLOAD) {
                             oos.writeBoolean(!file.exists());
                             oos.flush();
                         }
                         Boolean confirma;
                         confirma = ois.readBoolean();
                         if (confirma == true) {
-                            if (ficheiro.pedido == Ficheiro.ELIMINAR) {
+                            if (pedido.getTipoPedido() == Pedido.ELIMINAR) {
                                 file.delete();
                             }
-                            if (ficheiro.pedido == Ficheiro.UPLOAD) {
+                            if (pedido.getTipoPedido() == Pedido.UPLOAD) {
                                 Pedido p = new Pedido(file.getName(), 1,false);
                                 oos.writeObject(p);
                                 oos.flush();

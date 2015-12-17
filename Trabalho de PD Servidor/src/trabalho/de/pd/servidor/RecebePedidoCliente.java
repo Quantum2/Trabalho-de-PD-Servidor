@@ -48,20 +48,10 @@ public class RecebePedidoCliente extends Thread {
                             servidor.arrancaThreadEnviaFicheiro(socket, pedido);
                         break;
                     case Pedido.UPLOAD:
-                            servidor.arrancaThreadRecebeFicheiro(socket);
+                            servidor.arrancaThreadRecebeFicheiro(socket,pedido);
                         break;           
                     case Pedido.ELIMINAR:
                             servidor.arrancaThreadEliminaFicheiro(pedido);
-                        break;
-                    case Pedido.ACTUALIZACAO:
-                        ObjectOutputStream oos=new ObjectOutputStream(socket.getOutputStream());
-                        ListaFicheiros lsend=new ListaFicheiros();
-                        File directory = new File(System.getProperty("user.dir")+"\\ServerFicheiros");
-                        File[] fList = directory.listFiles();
-                        for(int i=0;i<fList.length;i++){
-                            lsend.addFicheiro(new Ficheiro(fList[i].getName(),fList[i].getTotalSpace(),0));
-                        }
-                        oos.writeObject(lsend);
                         break;
                     default:
                         break;

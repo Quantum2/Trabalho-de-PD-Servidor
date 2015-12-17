@@ -204,6 +204,8 @@ public class Servidor implements Serializable{
         /*
         if(!isPrimario()){           
             try {
+                Pedido pedido=new Pedido("",4,false);
+                //enviar para o primario
                 recebeActualizacaoTCP = new RecebeActualizacaoTCP(this);
                 recebeActualizacaoTCP.start();
             } catch (IOException ex) {
@@ -245,8 +247,8 @@ public class Servidor implements Serializable{
         enviaFicheiro.start();
     }
     
-    public void arrancaThreadRecebeFicheiro(Socket pedidosSocketTCP){
-        RecebeFicheiro recebeFicheiro=new RecebeFicheiro(this,pedidosSocketTCP);
+    public void arrancaThreadRecebeFicheiro(Socket pedidosSocketTCP,Pedido pedido){
+        RecebeFicheiro recebeFicheiro=new RecebeFicheiro(this,pedidosSocketTCP,pedido);
         recebeFicheiro.start();
     }
     
@@ -341,5 +343,9 @@ public class Servidor implements Serializable{
     
     public ArrayList<Socket> getSocketsClientes(){
         return socketsClientes;
+    }
+    
+    public ArrayList<Socket> getSocketSecundarios(){
+        return socketsSecundarios;
     }
 }

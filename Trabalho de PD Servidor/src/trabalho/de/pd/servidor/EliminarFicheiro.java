@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -32,15 +33,41 @@ public class EliminarFicheiro extends Thread {
 
     @Override
     public void run() {
+        boolean flg=true;
         if (servidor.isPrimario()) {
-            String dir = (servidor.getDiretoria());
-            File file = new File(dir);
-            file.delete();
+            try{
+                for(int i=0;i<servidor.getSocketSecundarios().size();i++){
+                    ObjectOutputStream oos=new ObjectOutputStream(servidor.getSocketSecundarios().get(i).getOutputStream());
+                    oos.writeObject(pedido);
+                    oos.flush();
+                }
+                for(int i=0;i<servidor.getSocketSecundarios().size();i++){
+                    ObjectInputStream iss=new ObjectInputStream(servidor.getSocketSecundarios().get(i).getInputStream());
+                    if(!iss.readBoolean()){
+                        flg=false;
+                        break;
+                    }
+                }
+                for(int i=0;i<servidor.getSocketSecundarios().size();i++){
+                    ObjectOutputStream oos=new ObjectOutputStream(servidor.getSocketSecundarios().get(i).getOutputStream());
+                    oos.writeBoolean(flg);
+                    oos.flush();
+                }
+            
+            if(flg){
+                String dir = (servidor.getDiretoria());
+                File file = new File(dir);
+                file.delete();
+            }
+            }catch (IOException ex) {
+                Logger.getLogger(EliminarFicheiro.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }else{
             ObjectOutputStream oos;
             try {
                 oos = new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
                 oos.writeObject(pedido);
+                oos.flush();
             } catch (IOException ex) {
                 Logger.getLogger(EliminarFicheiro.class.getName()).log(Level.SEVERE, null, ex);
             }
