@@ -5,11 +5,13 @@
  */
 package trabalho.de.pd.servidor;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Carlos Oliveira
  */
-public class Ficheiro {
+public class Ficheiro implements Serializable {
     public final static int UPLOAD = 2;
     public final static int ELIMINAR = 3;
     

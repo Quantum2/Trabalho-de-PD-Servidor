@@ -13,7 +13,7 @@ import java.util.ArrayList;
  * @author Carlos Oliveira
  */
 public class ListaFicheiros implements Serializable{
-    ArrayList<Ficheiro> listaFicheiros = new ArrayList<Ficheiro>();
+    ArrayList<Ficheiro> listaFicheiros = new ArrayList<>();
     
     public ListaFicheiros(){
         
