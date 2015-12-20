@@ -21,10 +21,9 @@ public class Ficheiro implements Serializable {
     //Poderá ser útil, mas usar sempre o nome do ficheiro com a extensão será melhor
     //String extensao;
     
-    Ficheiro(String nome,long bytes,int pedido/*,String extensao*/) {
+    public Ficheiro(String nome,long bytes/*,String extensao*/) {
         this.nome=nome;
         this.bytes=bytes;
-        this.pedido=pedido;
         //this.extensao=extensao;
     }
     

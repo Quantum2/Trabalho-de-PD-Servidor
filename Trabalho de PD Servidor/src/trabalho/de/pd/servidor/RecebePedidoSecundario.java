@@ -54,7 +54,7 @@ public class RecebePedidoSecundario extends Thread {
                         File directory = new File(System.getProperty("user.dir")+"\\ServerFicheiros");      //carlos ve la se tens a pasta nesta diretoria
                         File[] fList = directory.listFiles();
                         for(int i=0;i<fList.length;i++){
-                            lsend.addFicheiro(new Ficheiro(fList[i].getName(),fList[i].getTotalSpace(),0));
+                            lsend.addFicheiro(new Ficheiro(fList[i].getName(),fList[i].getTotalSpace()));
                         }
                         oos.writeObject(lsend);
                         break;

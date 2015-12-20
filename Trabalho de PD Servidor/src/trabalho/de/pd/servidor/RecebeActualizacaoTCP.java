@@ -40,7 +40,7 @@ public class RecebeActualizacaoTCP extends Thread {
         File[] arrayFicheiros = folder.listFiles();
         servidor.setListaFicheiros(new ListaFicheiros());
         for (File ficheiro : arrayFicheiros) {
-            Ficheiro ficheiroTemp = new Ficheiro(ficheiro.getName(), ficheiro.length(),0);
+            Ficheiro ficheiroTemp = new Ficheiro(ficheiro.getName(), ficheiro.length());
             servidor.getListaFicheiros().addFicheiro(ficheiroTemp);
         }
     }

@@ -69,7 +69,7 @@ public class Servidor implements Serializable{
         File[] arrayFicheiros = folder.listFiles();
         listaFicheiros=new ListaFicheiros();
         for(File ficheiro : arrayFicheiros){
-            Ficheiro ficheiroTemp=new Ficheiro(ficheiro.getName(),ficheiro.length(),0);
+            Ficheiro ficheiroTemp=new Ficheiro(ficheiro.getName(),ficheiro.length());
             listaFicheiros.addFicheiro(ficheiroTemp);
             System.out.println(ficheiroTemp.toString());
         }
