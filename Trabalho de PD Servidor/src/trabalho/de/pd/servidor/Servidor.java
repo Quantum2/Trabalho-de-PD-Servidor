@@ -7,6 +7,7 @@ package trabalho.de.pd.servidor;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -22,6 +23,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static trabalho.de.pd.servidor.SegundoCommitTCP.MAX_SIZE;
 /**
  *
  * @author ASUS
@@ -43,8 +45,8 @@ public class Servidor implements Serializable{
     //threads
     public HeartbeatsRecebe heartRECV=null;
     public HeartbeatsEnvia heartENVIA=null;
-    public RecebeActualizacaoTCP recebeActualizacaoTCP=null;
-    public RecebeActualizacaoTCP RcActualizacaoTCP=null;
+    public SegundoCommitTCP recebeActualizacaoTCP=null;
+    public SegundoCommitTCP RcActualizacaoTCP=null;
     public TrataCliente trataCliente=null;
     public TrataSecundario trataSecundario=null;
     
@@ -80,11 +82,14 @@ public class Servidor implements Serializable{
         multicastSocketUDP.setSoTimeout(5000);
         
         //TCP
-        serverSocketCliente=new ServerSocket(TCPport);
-        serverSocketCliente.setSoTimeout(5000);
-        serverSocketSecundario=new ServerSocket(TCPport+1);
-        serverSocketSecundario.setSoTimeout(5000);
-        
+        try {
+            serverSocketCliente = new ServerSocket(TCPport);
+            serverSocketCliente.setSoTimeout(5000);
+            serverSocketSecundario = new ServerSocket(TCPport + 1);
+            serverSocketSecundario.setSoTimeout(5000);
+        } catch (IOException e) {
+            System.out.println("Porta ja a ser utilizada...");
+        }
         
         //boolean
         primario=false;
@@ -108,20 +113,22 @@ public class Servidor implements Serializable{
         try {
             ObjectInputStream ois=new ObjectInputStream(primarioSocketTCP.getInputStream());
             listaFicheiros = (ListaFicheiros)ois.readObject();
-            ois.close();
             for(File file:new File(diretoria).listFiles()) {
                 file.delete();
             }
             
             ObjectOutputStream oos = new ObjectOutputStream(primarioSocketTCP.getOutputStream());
             for (Ficheiro ficheiro : listaFicheiros.getArrayListFicheiro()) {
-                RecebeActualizacaoTCP recebeFicheiro = new RecebeActualizacaoTCP(this);
-                recebeFicheiro.start();
-                oos.writeObject(new Pedido(ficheiro.getNome(),Pedido.DOWNLOAD,false));
+                oos.writeObject(new Pedido(ficheiro.getNome(), Pedido.DOWNLOAD, false));
                 oos.flush();
+                int nbytes;
+                byte[] filechunck = new byte[MAX_SIZE];
+                FileOutputStream fOut = new FileOutputStream(diretoria);
+                while ((nbytes = ois.read(filechunck)) > 0) {
+                    fOut.write(filechunck, 0, nbytes);
+                }
             }
             
-            oos.close();
         } catch (IOException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
@@ -190,40 +197,37 @@ public class Servidor implements Serializable{
             oos.flush();
         } catch (IOException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                oos.close();
-            } catch (IOException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
     }
     
     public void arrancaThreads()
     {
-        /*
         if(!isPrimario()){           
             try {
                 Pedido pedido=new Pedido("",4,false);
-                //enviar para o primario
-                recebeActualizacaoTCP = new RecebeActualizacaoTCP(this);
-                recebeActualizacaoTCP.start();
+                ObjectOutputStream oos=new ObjectOutputStream(primarioSocketTCP.getOutputStream());
+                oos.writeObject(pedido);
+                oos.flush();
+                recebeListaFicheiros();
             } catch (IOException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }            
         }
-        */
         
         try {
             heartRECV=new HeartbeatsRecebe(this);
             heartRECV.start();
             heartENVIA=new HeartbeatsEnvia(this);
             heartENVIA.start();
+            recebeActualizacaoTCP = new SegundoCommitTCP(this);
+            recebeActualizacaoTCP.start();
             trataCliente=new TrataCliente(this);
             trataCliente.start();
             trataSecundario=new TrataSecundario(this);
             trataSecundario.start();
         } catch (SocketException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

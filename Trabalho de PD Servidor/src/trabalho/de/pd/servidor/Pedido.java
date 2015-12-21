@@ -5,13 +5,14 @@
  */
 package trabalho.de.pd.servidor;
 
+import java.io.Serializable;
 import java.net.Socket;
 
 /**
  *
  * @author Carlos Oliveira
  */
-public class Pedido {
+public class Pedido implements Serializable{
     
     //ter estas variáveis no servidor e fazer if == DOWNLOAD ou 
     //switch(int tipoPedido) case: DOWNLOAD e assim fora para os outros
