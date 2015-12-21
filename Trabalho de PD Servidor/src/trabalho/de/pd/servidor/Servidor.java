@@ -246,6 +246,11 @@ public class Servidor implements Serializable{
         threadsPedidoSecundario.add(thread);
     }
     
+    public void removeEscutaSocket(Socket socket){
+        socketsClientes.remove(socket);
+        socketsSecundarios.remove(socket);
+    }
+    
     public void arrancaThreadEnviaFicheiro(Socket socket,Pedido pedido){
         EnviaFicheiro enviaFicheiro=new EnviaFicheiro(this,socket,pedido.getNomeFicheiro());
         enviaFicheiro.start();

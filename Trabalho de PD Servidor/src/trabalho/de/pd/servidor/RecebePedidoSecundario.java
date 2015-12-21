@@ -9,7 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,8 +63,14 @@ public class RecebePedidoSecundario extends Thread {
                     default:
                         break;
                 }
-            } catch (IOException ex) {
-                System.out.println("RecebePedido Timeout");
+            } catch (SocketTimeoutException e) {
+                System.out.println("Timeout RecebePedidoSecundario\n");
+            } catch(ConnectException e){
+                System.out.println("Socket removido");
+                servidor.removeEscutaSocket(socket);
+                running=false;
+            }   catch (IOException ex) {
+                Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
             }

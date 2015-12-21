@@ -77,7 +77,7 @@ public class HeartbeatsRecebe extends Thread{
             } catch (SocketException e) {
                 System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
             } catch (SocketTimeoutException e) {
-                System.out.println("Timeout\n\t");
+                System.out.println("Timeout HeartBeatReceve\n");
             } catch (IOException e) {
                 System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
             } catch (ClassNotFoundException ex) {
