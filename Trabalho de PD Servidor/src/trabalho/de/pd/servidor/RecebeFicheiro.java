@@ -14,6 +14,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -77,8 +78,10 @@ public class RecebeFicheiro extends Thread {
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(EnviaFicheiro.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(EnviaFicheiro.class.getName()).log(Level.SEVERE, null, ex);
+        }catch(SocketTimeoutException ex){
+            System.out.println("[SERVIDOR] Timeout RecebeFicheiro");
+        }catch (IOException ex) {
+            System.out.println("[SERVIDOR] A receber ficheiros");
         }
     }
 }

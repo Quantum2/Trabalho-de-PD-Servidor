@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,8 +44,10 @@ public class EnviaFicheiro extends Thread {
             }
         } catch (FileNotFoundException ex) {
             Logger.getLogger(EnviaFicheiro.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(EnviaFicheiro.class.getName()).log(Level.SEVERE, null, ex);
+        } catch(SocketTimeoutException ex){
+            System.out.println("[SERVIDOR] Timeout EnviaFicheiro");
+        }catch (IOException ex) {
+            System.out.println("[SERVIDOR] A receber ficheiros");
         }
     }
 }
