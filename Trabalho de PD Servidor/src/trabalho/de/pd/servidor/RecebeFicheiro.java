@@ -5,6 +5,7 @@
  */
 package trabalho.de.pd.servidor;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -58,6 +59,10 @@ public class RecebeFicheiro extends Thread {
                     int nbytes;
                     byte[] filechunck = new byte[Servidor.MAX_SIZE];
                     InputStream inputFicheiro = socketPedido.getInputStream();
+                    File folder=new File(servidor.getDiretoria()+"\\"+pedido.getNomeFicheiro());
+                    if(!folder.exists()){
+                        folder.createNewFile();
+                    }
                     fileOut = new FileOutputStream(servidor.diretoria);
                     while ((nbytes = inputFicheiro.read(filechunck)) > 0) {
                     fileOut.write(filechunck, 0, nbytes);
