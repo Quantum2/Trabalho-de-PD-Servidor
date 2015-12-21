@@ -45,7 +45,7 @@ public class Servidor implements Serializable{
     //threads
     public HeartbeatsRecebe heartRECV=null;
     public HeartbeatsEnvia heartENVIA=null;
-    public SegundoCommitTCP recebeActualizacaoTCP=null;
+    public SegundoCommitTCP segundoCommitTCP=null;
     public SegundoCommitTCP RcActualizacaoTCP=null;
     public TrataCliente trataCliente=null;
     public TrataSecundario trataSecundario=null;
@@ -219,8 +219,8 @@ public class Servidor implements Serializable{
             heartRECV.start();
             heartENVIA=new HeartbeatsEnvia(this);
             heartENVIA.start();
-            recebeActualizacaoTCP = new SegundoCommitTCP(this);
-            recebeActualizacaoTCP.start();
+            segundoCommitTCP = new SegundoCommitTCP(this);
+            segundoCommitTCP.start();
             trataCliente=new TrataCliente(this);
             trataCliente.start();
             trataSecundario=new TrataSecundario(this);
@@ -274,6 +274,9 @@ public class Servidor implements Serializable{
             
             trataCliente.termina();
             trataCliente.join();
+            
+            segundoCommitTCP.termina();
+            segundoCommitTCP.join();
             
             trataSecundario.termina();
             trataSecundario.join();

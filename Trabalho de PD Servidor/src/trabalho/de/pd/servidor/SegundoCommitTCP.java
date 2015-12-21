@@ -51,47 +51,49 @@ public class SegundoCommitTCP extends Thread {
 
     @Override
     public void run() {
-        if (!servidor.isPrimario()) {
-            try {
-                ObjectInputStream ois = new ObjectInputStream(servidor.getPrimarioSocketTCP().getInputStream());
-                Object msg = ois.readObject();
-                if (msg instanceof Pedido) {
-                    ObjectOutputStream oos = new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
-                    Pedido pedido = (Pedido) msg;
-                    File file = new File(servidor.getDiretoria()+ pedido.getNomeFicheiro());
-                    if (pedido.getTipoPedido() == Pedido.ELIMINAR) {
-                        oos.writeBoolean(file.canRead());
-                        oos.flush();
-                    }
-                    if (pedido.getTipoPedido() == Pedido.UPLOAD) {
-                        oos.writeBoolean(!file.exists());
-                        oos.flush();
-                    }
-                    Boolean confirma;
-                    confirma = ois.readBoolean();
-                    if (confirma == true) {
+        do {
+            if (!servidor.isPrimario()) {
+                try {
+                    ObjectInputStream ois = new ObjectInputStream(servidor.getPrimarioSocketTCP().getInputStream());
+                    Object msg = ois.readObject();
+                    if (msg instanceof Pedido) {
+                        ObjectOutputStream oos = new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
+                        Pedido pedido = (Pedido) msg;
+                        File file = new File(servidor.getDiretoria() + pedido.getNomeFicheiro());
                         if (pedido.getTipoPedido() == Pedido.ELIMINAR) {
-                            file.delete();
+                            oos.writeBoolean(file.canRead());
+                            oos.flush();
                         }
                         if (pedido.getTipoPedido() == Pedido.UPLOAD) {
-                            Pedido p = new Pedido(file.getName(), 1, false);
-                            oos.writeObject(p);
+                            oos.writeBoolean(!file.exists());
                             oos.flush();
+                        }
+                        Boolean confirma;
+                        confirma = ois.readBoolean();
+                        if (confirma == true) {
+                            if (pedido.getTipoPedido() == Pedido.ELIMINAR) {
+                                file.delete();
+                            }
+                            if (pedido.getTipoPedido() == Pedido.UPLOAD) {
+                                Pedido p = new Pedido(file.getName(), 1, false);
+                                oos.writeObject(p);
+                                oos.flush();
 
-                            int nbytes;
-                            byte[] filechunck = new byte[MAX_SIZE];
-                            FileOutputStream fOut = new FileOutputStream(servidor.diretoria);
-                            while ((nbytes = inputStreamFicheiro.read(filechunck)) > 0) {
-                                fOut.write(filechunck, 0, nbytes);
+                                int nbytes;
+                                byte[] filechunck = new byte[MAX_SIZE];
+                                FileOutputStream fOut = new FileOutputStream(servidor.diretoria);
+                                while ((nbytes = inputStreamFicheiro.read(filechunck)) > 0) {
+                                    fOut.write(filechunck, 0, nbytes);
+                                }
                             }
                         }
                     }
+                } catch (IOException ex) {
+                    Logger.getLogger(SegundoCommitTCP.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(SegundoCommitTCP.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            } catch (IOException ex) {
-                Logger.getLogger(SegundoCommitTCP.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(SegundoCommitTCP.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }
+        } while (running);
     }
 }

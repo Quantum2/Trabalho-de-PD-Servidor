@@ -50,15 +50,8 @@ public class RecebePedidoSecundario extends Thread {
                     case Pedido.ELIMINAR:
                         servidor.arrancaThreadEliminaFicheiro(pedido);
                         break;
-                    case Pedido.ACTUALIZACAO: //nao sei se meto numa thread ou nao
-                        ObjectOutputStream oos=new ObjectOutputStream(socket.getOutputStream());
-                        ListaFicheiros lsend=new ListaFicheiros();
-                        File directory = new File(System.getProperty("user.dir")+"\\ServerFicheiros");      //carlos ve la se tens a pasta nesta diretoria
-                        File[] fList = directory.listFiles();
-                        for(int i=0;i<fList.length;i++){
-                            lsend.addFicheiro(new Ficheiro(fList[i].getName(),fList[i].getTotalSpace()));
-                        }
-                        oos.writeObject(lsend);
+                    case Pedido.ACTUALIZACAO:
+                        servidor.enviaListaFicheiros(socket);
                         break;
                     default:
                         break;
