@@ -25,13 +25,11 @@ public class Pedido implements Serializable{
     //inclui .extensão
     private String nomeFicheiro;
     private int tipoPedido;
-    private boolean cliente;
     private Socket socketCliente=null;
     
-    public Pedido (String nomeFicheiro, int tipoPedido,boolean cliente) {
+    public Pedido (String nomeFicheiro, int tipoPedido) {
         this.nomeFicheiro=nomeFicheiro;
         this.tipoPedido=tipoPedido;
-        this.cliente=cliente;
     }
     
     public String getNomeFicheiro() {
@@ -40,10 +38,6 @@ public class Pedido implements Serializable{
     
     public int getTipoPedido() {
         return tipoPedido;
-    }
-    
-    public boolean getIsCliente(){
-        return cliente;
     }
     
     public void setSocketCliente(Socket socket){

@@ -75,7 +75,7 @@ public class SegundoCommitTCP extends Thread {
                                 file.delete();
                             }
                             if (pedido.getTipoPedido() == Pedido.UPLOAD) {
-                                Pedido p = new Pedido(file.getName(), 1, false);
+                                Pedido p = new Pedido(file.getName(), 1);
                                 oos.writeObject(p);
                                 oos.flush();
 

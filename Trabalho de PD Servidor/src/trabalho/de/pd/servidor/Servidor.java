@@ -119,7 +119,7 @@ public class Servidor implements Serializable{
             
             ObjectOutputStream oos = new ObjectOutputStream(primarioSocketTCP.getOutputStream());
             for (Ficheiro ficheiro : listaFicheiros.getArrayListFicheiro()) {
-                oos.writeObject(new Pedido(ficheiro.getNome(), Pedido.DOWNLOAD, false));
+                oos.writeObject(new Pedido(ficheiro.getNome(), Pedido.DOWNLOAD));
                 oos.flush();
                 int nbytes;
                 byte[] filechunck = new byte[MAX_SIZE];
@@ -204,7 +204,7 @@ public class Servidor implements Serializable{
     {
         if(!isPrimario()){           
             try {
-                Pedido pedido=new Pedido("",4,false);
+                Pedido pedido=new Pedido("",4);
                 ObjectOutputStream oos=new ObjectOutputStream(primarioSocketTCP.getOutputStream());
                 oos.writeObject(pedido);
                 oos.flush();
