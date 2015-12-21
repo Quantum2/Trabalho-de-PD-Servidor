@@ -89,7 +89,7 @@ public class SegundoCommitTCP extends Thread {
                         }
                     }
                 } catch (IOException ex) {
-                    Logger.getLogger(SegundoCommitTCP.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println("[SECUNDARIO] a espera de msg do primario...");
                 } catch (ClassNotFoundException ex) {
                     Logger.getLogger(SegundoCommitTCP.class.getName()).log(Level.SEVERE, null, ex);
                 }

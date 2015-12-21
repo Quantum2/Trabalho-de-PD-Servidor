@@ -67,15 +67,18 @@ public class Servidor implements Serializable{
         this.TCPport=TCPport;
         this.diretoria=diretoria;    
         
-        File folder = new File(diretoria);                        
+        File folder = new File(diretoria);
+        if(!folder.exists()){
+            folder.createNewFile();
+        }
         File[] arrayFicheiros = folder.listFiles();
         listaFicheiros=new ListaFicheiros();
         for(File ficheiro : arrayFicheiros){
             Ficheiro ficheiroTemp=new Ficheiro(ficheiro.getName(),ficheiro.length());
             listaFicheiros.addFicheiro(ficheiroTemp);
             System.out.println(ficheiroTemp.toString());
-        }
-                
+        }      
+        
         group=InetAddress.getByName("225.15.15.15");
         multicastSocketUDP = new MulticastSocket(7000);
         multicastSocketUDP.joinGroup(group);
@@ -109,29 +112,37 @@ public class Servidor implements Serializable{
         }
     }
     
-    public void recebeListaFicheiros(){
+    public void recebeListaFicheiros() {
         try {
-            ObjectInputStream ois=new ObjectInputStream(primarioSocketTCP.getInputStream());
-            listaFicheiros = (ListaFicheiros)ois.readObject();
-            for(File file:new File(diretoria).listFiles()) {
+            ObjectInputStream ois = new ObjectInputStream(primarioSocketTCP.getInputStream());
+            listaFicheiros = (ListaFicheiros) ois.readObject();
+            for (File file : new File(diretoria).listFiles()) {
                 file.delete();
             }
-            
+
             ObjectOutputStream oos = new ObjectOutputStream(primarioSocketTCP.getOutputStream());
             for (Ficheiro ficheiro : listaFicheiros.getArrayListFicheiro()) {
+                File folder = new File(diretoria + "\\" + ficheiro.getNome());
+                if (!folder.exists()) {
+                    folder.createNewFile();
+                }
                 oos.writeObject(new Pedido(ficheiro.getNome(), Pedido.DOWNLOAD));
                 oos.flush();
                 int nbytes;
                 byte[] filechunck = new byte[MAX_SIZE];
-                FileOutputStream fOut = new FileOutputStream(diretoria);
-                while ((nbytes = ois.read(filechunck)) > 0) {
-                    fOut.write(filechunck, 0, nbytes);
+                FileOutputStream fOut = new FileOutputStream(diretoria + "\\" + ficheiro.getNome());
+                try {
+                    while ((nbytes = ois.read(filechunck)) > 0) {
+                        fOut.write(filechunck, 0, nbytes);
+                    }
+                } catch (IOException ex) {
+                    System.out.println("[SERVIDOR]Timeout ao fazer actualizacao...");
                 }
             }
-            
-        } catch (IOException ex) {
-            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+
         } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -156,13 +167,13 @@ public class Servidor implements Serializable{
                         break;
                     }
                 } catch (NumberFormatException e) {
-                    System.out.println("O porto de escuta deve ser um inteiro positivo.");
+                    System.out.println("[SERVIDOR]O porto de escuta deve ser um inteiro positivo.");
                 } catch (SocketException e) {
-                    System.out.println("Ocorreu um erro ao nível do socket UDP:\n\t" + e);
+                    System.out.println("[SERVIDOR]Ocorreu um erro ao nível do socket UDP:\n\t" + e);
                 } catch (SocketTimeoutException e) {
 
                 } catch (IOException e) {
-                    System.out.println("Ocorreu um erro no acesso ao socket:\n\t" + e);
+                    System.out.println("[SERVIDOR]Ocorreu um erro no acesso ao socket:\n\t" + e);
                 } catch (ClassNotFoundException ex) {
                     Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 } finally {
@@ -209,6 +220,8 @@ public class Servidor implements Serializable{
                 oos.writeObject(pedido);
                 oos.flush();
                 recebeListaFicheiros();
+                segundoCommitTCP = new SegundoCommitTCP(this);
+                segundoCommitTCP.start();
             } catch (IOException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }            
@@ -219,15 +232,12 @@ public class Servidor implements Serializable{
             heartRECV.start();
             heartENVIA=new HeartbeatsEnvia(this);
             heartENVIA.start();
-            segundoCommitTCP = new SegundoCommitTCP(this);
-            segundoCommitTCP.start();
+            
             trataCliente=new TrataCliente(this);
             trataCliente.start();
             trataSecundario=new TrataSecundario(this);
             trataSecundario.start();
         } catch (SocketException ex) {
-            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
             Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -275,8 +285,10 @@ public class Servidor implements Serializable{
             trataCliente.termina();
             trataCliente.join();
             
-            segundoCommitTCP.termina();
-            segundoCommitTCP.join();
+            if(!isPrimario()){
+                segundoCommitTCP.termina();
+                segundoCommitTCP.join();
+            }
             
             trataSecundario.termina();
             trataSecundario.join();

@@ -47,7 +47,6 @@ public class HeartbeatsEnvia extends Thread {
                 
                 packet=new DatagramPacket(byteout.toByteArray(),byteout.size(),servidor.getGroup(),7000);
                 servidor.getMulticastSocket().send(packet); //teste
-                send.close();
                 sleep(5000);
             } catch (NumberFormatException e) {
                 System.out.println("O porto de escuta deve ser um inteiro positivo.");

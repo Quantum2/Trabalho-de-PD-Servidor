@@ -58,12 +58,10 @@ public class RecebePedidoSecundario extends Thread {
                 }
             } catch (SocketTimeoutException e) {
                 System.out.println("Timeout RecebePedidoSecundario\n");
-            } catch(ConnectException e){
+            } catch (IOException ex) {
                 System.out.println("Socket removido");
                 servidor.removeEscutaSocket(socket);
                 running=false;
-            }   catch (IOException ex) {
-                Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
             }

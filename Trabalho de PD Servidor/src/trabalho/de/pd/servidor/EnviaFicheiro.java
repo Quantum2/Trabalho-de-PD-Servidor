@@ -45,12 +45,6 @@ public class EnviaFicheiro extends Thread {
             Logger.getLogger(EnviaFicheiro.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(EnviaFicheiro.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                fileIn.close();
-            } catch (IOException ex) {
-                Logger.getLogger(EnviaFicheiro.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
     }
 }
