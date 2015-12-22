@@ -13,7 +13,7 @@ import java.net.Socket;
  * @author Carlos Oliveira
  */
 public class Pedido implements Serializable{
-    
+    private static final long serialVersionUID = 1L;
     //ter estas variáveis no servidor e fazer if == DOWNLOAD ou 
     //switch(int tipoPedido) case: DOWNLOAD e assim fora para os outros
     //de modo a chamar o método correspondente a cada ação

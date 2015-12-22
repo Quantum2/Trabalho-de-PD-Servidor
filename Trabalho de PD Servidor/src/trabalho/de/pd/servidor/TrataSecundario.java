@@ -32,7 +32,7 @@ public class TrataSecundario extends Thread{
         do {
             try {
                 pedidosSocketSecundario = servidor.getServerSocketSecundario().accept();
-                System.out.println("[SERVIDOR] Aceitou conecção " + pedidosSocketSecundario.getInetAddress().getHostAddress());
+                System.out.println("[SERVIDOR] Aceitou conecção " + pedidosSocketSecundario.getInetAddress().getHostAddress()+" porto: " +pedidosSocketSecundario.getPort());
                 servidor.addEscutaSecundario(pedidosSocketSecundario);
             } catch (IOException ex) {
                 System.err.println("[SERVIDOR] A fazer accept pedido socket servidor secundário - " + ex);

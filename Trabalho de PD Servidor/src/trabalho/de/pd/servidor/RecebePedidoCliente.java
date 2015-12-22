@@ -20,22 +20,22 @@ import java.util.logging.Logger;
  * @author ASUS
  */
 public class RecebePedidoCliente extends Thread {
-    
+
     Pedido pedido;
     Servidor servidor = null;
     Socket socket = null;
     Boolean running = null;
-    
-    public RecebePedidoCliente(Servidor servidor,Socket socket) {
+
+    public RecebePedidoCliente(Servidor servidor, Socket socket) {
         this.servidor = servidor;
         this.socket = socket;
         running = true;
     }
-    
+
     public void termina() {
         running = false;
     }
-    
+
     @Override
     public void run() {
         System.out.println("[SERVIDOR] Thread RecebePedidoCliente - " + socket.getInetAddress().getHostAddress() + ":"
@@ -44,26 +44,30 @@ public class RecebePedidoCliente extends Thread {
         do {
             try {
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-                pedido = (Pedido) ois.readObject();
-                switch (pedido.getTipoPedido()) {
-                    case Pedido.DOWNLOAD:
+                Object msg = ois.readObject();
+                if (msg instanceof Pedido) {
+                    pedido = (Pedido) msg;
+                    switch (pedido.getTipoPedido()) {
+                        case Pedido.DOWNLOAD:
                             servidor.arrancaThreadEnviaFicheiro(socket, pedido);
-                        break;
-                    case Pedido.UPLOAD:
-                            servidor.arrancaThreadRecebeFicheiro(socket,pedido);
-                        break;           
-                    case Pedido.ELIMINAR:
+                            break;
+                        case Pedido.UPLOAD:
+                            servidor.arrancaThreadRecebeFicheiro(socket, pedido);
+                            break;
+                        case Pedido.ELIMINAR:
                             servidor.arrancaThreadEliminaFicheiro(pedido);
-                        break;
-                    default:
-                        break;
+                            break;
+                        default:
+                            break;
+                    }
                 }
-            }catch (SocketTimeoutException e) {
+            } catch (SocketTimeoutException e) {
                 System.out.println("Timeout RecebePedidoCliente\n");
             } catch (IOException ex) {
                 System.out.println("Socket removido");
                 servidor.removeEscutaSocket(socket);
-                running=false;
+                running = false;
+                Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
             }

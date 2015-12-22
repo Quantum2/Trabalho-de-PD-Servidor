@@ -20,48 +20,55 @@ import java.util.logging.Logger;
  * @author ASUS
  */
 public class RecebePedidoSecundario extends Thread {
-    
+
     Pedido pedido;
     Servidor servidor = null;
     Socket socket = null;
     Boolean running = null;
-    
-    public RecebePedidoSecundario(Servidor servidor,Socket socket) {
+
+    public RecebePedidoSecundario(Servidor servidor, Socket socket) {
         this.servidor = servidor;
         this.socket = socket;
         running = true;
     }
-    
+
     public void termina() {
         running = false;
     }
-    
+
     @Override
     public void run() {
         System.out.println("Thread RecebePedido a correr...."); //falta diferenciar o primario e o secundario
         do {
             try {
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-                pedido = (Pedido) ois.readObject();
-                switch (pedido.getTipoPedido()) {
-                    case Pedido.UPLOAD:
-                        servidor.arrancaThreadRecebeFicheiro(pedido.getSocketCliente(),pedido);
-                        break;           
-                    case Pedido.ELIMINAR:
-                        servidor.arrancaThreadEliminaFicheiro(pedido);
-                        break;
-                    case Pedido.ACTUALIZACAO:
-                        servidor.enviaListaFicheiros(socket);
-                        break;
-                    default:
-                        break;
+                Object msg = ois.readObject();
+                if (msg instanceof Pedido) {
+                    pedido = (Pedido) msg;
+                    switch (pedido.getTipoPedido()) {
+                        case Pedido.DOWNLOAD:
+                            servidor.arrancaThreadEnviaFicheiro(socket, pedido);
+                            break;
+                        case Pedido.UPLOAD:
+                            servidor.arrancaThreadRecebeFicheiro(pedido.getSocketCliente(), pedido);
+                            break;
+                        case Pedido.ELIMINAR:
+                            servidor.arrancaThreadEliminaFicheiro(pedido);
+                            break;
+                        case Pedido.ACTUALIZACAO:
+                            servidor.enviaListaFicheiros(socket);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             } catch (SocketTimeoutException e) {
                 System.out.println("Timeout RecebePedidoSecundario\n");
             } catch (IOException ex) {
                 System.out.println("Socket removido");
-                servidor.removeEscutaSocket(socket);
-                running=false;
+                 servidor.removeEscutaSocket(socket);
+                 running=false;
+                Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
             }

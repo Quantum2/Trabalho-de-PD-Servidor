@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -119,24 +120,27 @@ public class Servidor implements Serializable{
             for (File file : new File(diretoria).listFiles()) {
                 file.delete();
             }
-
-            ObjectOutputStream oos = new ObjectOutputStream(primarioSocketTCP.getOutputStream());
+            
             for (Ficheiro ficheiro : listaFicheiros.getArrayListFicheiro()) {
                 File folder = new File(diretoria + "\\" + ficheiro.getNome());
                 if (!folder.exists()) {
                     folder.createNewFile();
                 }
-                oos.writeObject(new Pedido(ficheiro.getNome(), Pedido.DOWNLOAD));
+                ObjectOutputStream oos = new ObjectOutputStream(primarioSocketTCP.getOutputStream());
+                Pedido pedido=new Pedido(ficheiro.getNome(), Pedido.DOWNLOAD);
+                oos.writeObject(pedido);
                 oos.flush();
-                int nbytes;
-                byte[] filechunck = new byte[MAX_SIZE];
-                FileOutputStream fOut = new FileOutputStream(diretoria + "\\" + ficheiro.getNome());
                 try {
-                    while ((nbytes = ois.read(filechunck)) > 0) {
+                    int nbytes;
+                    byte[] filechunck = new byte[MAX_SIZE];
+                    FileOutputStream fOut = new FileOutputStream(diretoria + "\\" + ficheiro.getNome());
+                    InputStream oips=primarioSocketTCP.getInputStream();
+                    while ((nbytes = oips.read(filechunck)) > 0) {
                         fOut.write(filechunck, 0, nbytes);
                     }
                 } catch (IOException ex) {
                     System.out.println("[SERVIDOR]Timeout ao fazer actualizacao...");
+                    //Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
 

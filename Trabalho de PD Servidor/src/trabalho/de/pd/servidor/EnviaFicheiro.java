@@ -37,9 +37,9 @@ public class EnviaFicheiro extends Thread {
             int nbytes;
             byte [] filechunck = new byte [Servidor.MAX_SIZE];
             OutputStream outputFicheiro = socketPedido.getOutputStream();
-            fileIn = new FileInputStream(servidor.diretoria);
+            fileIn = new FileInputStream(servidor.diretoria+"\\"+nomeFicheiro);
             while((nbytes=fileIn.read(filechunck))>0) {
-                outputFicheiro.write(filechunck);
+                outputFicheiro.write(filechunck,0,nbytes);
                 outputFicheiro.flush();
             }
         } catch (FileNotFoundException ex) {

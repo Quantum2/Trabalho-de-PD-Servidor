@@ -32,7 +32,7 @@ public class TrataCliente extends Thread{
         do {
             try {
                 pedidosSocketCliente = servidor.getServerSocketCliente().accept();
-                System.out.println("[SERVIDOR] Aceitou conecção " + pedidosSocketCliente.getInetAddress().getHostAddress());
+                System.out.println("[SERVIDOR] Aceitou conecção " + pedidosSocketCliente.getInetAddress().getHostAddress() +" porto: " +pedidosSocketCliente.getPort());
                 servidor.addEscutaCliente(pedidosSocketCliente);
             } catch (IOException ex) {
                 System.err.println("[SERVIDOR] A fazer accept pedido socket cliente - " + ex);
