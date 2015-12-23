@@ -78,7 +78,11 @@ public class RecebePedidoCliente extends Thread {
                             }                            
                             break;
                         case Pedido.ELIMINAR:
-                            servidor.arrancaThreadEliminaFicheiro(pedido);
+                            ListaFicheiros auxLFR = servidor.getListaFicheiros();
+                            if(auxLFR.hasFicheiro(pedido.getNomeFicheiro())){
+                                servidor.arrancaThreadEliminaFicheiro(pedido).join();
+                                servidor.enviaListaFicheiros(socket);
+                            }
                             break;
                         case Pedido.ACTUALIZACAO:
                             servidor.enviaListaFicheiros(socket);

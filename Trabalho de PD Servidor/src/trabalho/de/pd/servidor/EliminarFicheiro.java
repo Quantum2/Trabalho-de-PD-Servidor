@@ -55,7 +55,7 @@ public class EliminarFicheiro extends Thread {
                 }
             
             if(flg){
-                String dir = (servidor.getDiretoria());
+                String dir = (servidor.getDiretoria()+"\\"+pedido.getNomeFicheiro());
                 File file = new File(dir);
                 file.delete();
             }

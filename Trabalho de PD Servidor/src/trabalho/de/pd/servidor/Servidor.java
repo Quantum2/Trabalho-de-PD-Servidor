@@ -285,9 +285,10 @@ public class Servidor implements Serializable{
         return recebeFicheiro;
     }
     
-    public void arrancaThreadEliminaFicheiro(Pedido pedido){
+    public EliminarFicheiro arrancaThreadEliminaFicheiro(Pedido pedido){
         EliminarFicheiro eliminarFicheiro=new EliminarFicheiro(this,pedido);
         eliminarFicheiro.start();
+        return eliminarFicheiro;
     }
     
     public void recomeça(){       
