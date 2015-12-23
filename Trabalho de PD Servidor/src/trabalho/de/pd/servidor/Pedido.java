@@ -26,6 +26,8 @@ public class Pedido implements Serializable{
     private String nomeFicheiro;
     private int tipoPedido;
     private Socket socketCliente=null;
+    private Socket socketPrimario=null;
+    private boolean aceite = false;
     
     public Pedido (String nomeFicheiro, int tipoPedido) {
         this.nomeFicheiro=nomeFicheiro;
@@ -46,5 +48,21 @@ public class Pedido implements Serializable{
     
     public Socket getSocketCliente(){
         return socketCliente;
+    }
+    
+    public void setSocketPrimario(Socket socket){
+        socketPrimario=socket;
+    }
+    
+    public Socket getSocketPrimario(){
+        return socketPrimario;
+    }
+    
+    public void setAceite(boolean aceite) {
+        this.aceite=aceite;
+    }
+    
+    public boolean isAceite() {
+        return aceite;
     }
 }

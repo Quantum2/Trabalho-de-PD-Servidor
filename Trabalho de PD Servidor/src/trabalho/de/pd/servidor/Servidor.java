@@ -313,6 +313,8 @@ public class Servidor implements Serializable{
             multicastSocketUDP.close();
     }
     
+    
+    
     public Boolean isPrimario() {
         return primario;
     }

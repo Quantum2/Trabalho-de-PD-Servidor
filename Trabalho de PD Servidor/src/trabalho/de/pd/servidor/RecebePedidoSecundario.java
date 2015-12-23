@@ -50,7 +50,16 @@ public class RecebePedidoSecundario extends Thread {
                             servidor.arrancaThreadEnviaFicheiro(socket, pedido);
                             break;
                         case Pedido.UPLOAD:
-                            servidor.arrancaThreadRecebeFicheiro(pedido.getSocketCliente(), pedido);
+                            ListaFicheiros auxLF = servidor.getListaFicheiros();
+                            if (auxLF.hasFicheiro(pedido.getNomeFicheiro())) {
+                                pedido.setAceite(false);
+                            } else {
+                                pedido.setAceite(true);
+                                servidor.arrancaThreadRecebeFicheiro(pedido.getSocketCliente(), pedido);
+                            }
+                            ObjectOutputStream oos = new ObjectOutputStream(pedido.getSocketCliente().getOutputStream());
+                            oos.writeObject(pedido);
+                            oos.flush();
                             break;
                         case Pedido.ELIMINAR:
                             servidor.arrancaThreadEliminaFicheiro(pedido);

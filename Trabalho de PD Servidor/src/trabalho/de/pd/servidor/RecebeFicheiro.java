@@ -63,9 +63,10 @@ public class RecebeFicheiro extends Thread {
                     if(!folder.exists()){
                         folder.createNewFile();
                     }
-                    fileOut = new FileOutputStream(servidor.diretoria);
+                    String localFilePath = servidor.diretoria+"\\"+pedido.getNomeFicheiro();
+                    fileOut = new FileOutputStream(localFilePath);
                     while ((nbytes = inputFicheiro.read(filechunck)) > 0) {
-                    fileOut.write(filechunck, 0, nbytes);
+                        fileOut.write(filechunck, 0, nbytes);
                     }
                 }
                 

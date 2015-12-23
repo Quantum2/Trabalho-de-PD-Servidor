@@ -19,6 +19,15 @@ public class ListaFicheiros implements Serializable{
         
     }
     
+    public boolean hasFicheiro(String nomeFicheiro) {
+        for (Ficheiro ficheiro : listaFicheiros) {
+            if (ficheiro.getNome().equals(nomeFicheiro)){
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public void addFicheiro(Ficheiro ficheiro) {
         listaFicheiros.add(ficheiro);
     }

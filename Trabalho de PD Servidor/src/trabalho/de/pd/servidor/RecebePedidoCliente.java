@@ -5,11 +5,9 @@
  */
 package trabalho.de.pd.servidor;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.logging.Level;
@@ -44,6 +42,7 @@ public class RecebePedidoCliente extends Thread {
         do {
             try {
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+                ObjectOutputStream oos = null;
                 Object msg = ois.readObject();
                 if (msg instanceof Pedido) {
                     pedido = (Pedido) msg;
@@ -52,7 +51,21 @@ public class RecebePedidoCliente extends Thread {
                             servidor.arrancaThreadEnviaFicheiro(socket, pedido);
                             break;
                         case Pedido.UPLOAD:
-                            servidor.arrancaThreadRecebeFicheiro(socket, pedido);
+                            if (servidor.isPrimario()) {
+                                ListaFicheiros auxLF = servidor.getListaFicheiros();
+                                if (auxLF.hasFicheiro(((Pedido) msg).getNomeFicheiro())) {
+                                    pedido.setAceite(false);
+                                } else {
+                                    pedido.setAceite(true);
+                                    servidor.arrancaThreadRecebeFicheiro(socket, pedido);
+                                }
+                                oos = new ObjectOutputStream(socket.getOutputStream());
+                            } else {
+                                pedido.setSocketPrimario(servidor.getPrimarioSocketTCP());
+                                oos = new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
+                            }
+                            oos.writeObject(pedido);
+                            oos.flush();
                             break;
                         case Pedido.ELIMINAR:
                             servidor.arrancaThreadEliminaFicheiro(pedido);
