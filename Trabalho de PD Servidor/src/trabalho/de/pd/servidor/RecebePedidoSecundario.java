@@ -53,13 +53,16 @@ public class RecebePedidoSecundario extends Thread {
                             ListaFicheiros auxLF = servidor.getListaFicheiros();
                             if (auxLF.hasFicheiro(pedido.getNomeFicheiro())) {
                                 pedido.setAceite(false);
+                                ObjectOutputStream oos = new ObjectOutputStream(pedido.getSocketCliente().getOutputStream());
+                                oos.writeObject(pedido);
+                                oos.flush();
                             } else {
                                 pedido.setAceite(true);
-                                servidor.arrancaThreadRecebeFicheiro(pedido.getSocketCliente(), pedido);
+                                ObjectOutputStream oos = new ObjectOutputStream(pedido.getSocketCliente().getOutputStream());
+                                oos.writeObject(pedido);
+                                oos.flush();
+                                servidor.arrancaThreadRecebeFicheiro(pedido.getSocketCliente(), pedido).join();
                             }
-                            ObjectOutputStream oos = new ObjectOutputStream(pedido.getSocketCliente().getOutputStream());
-                            oos.writeObject(pedido);
-                            oos.flush();
                             break;
                         case Pedido.ELIMINAR:
                             servidor.arrancaThreadEliminaFicheiro(pedido);
@@ -80,6 +83,8 @@ public class RecebePedidoSecundario extends Thread {
                 Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(RecebePedidoSecundario.class.getName()).log(Level.SEVERE, null, ex);
             }
         } while (running);
     }

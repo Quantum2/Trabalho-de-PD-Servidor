@@ -68,17 +68,7 @@ public class Servidor implements Serializable{
         this.TCPport=TCPport;
         this.diretoria=diretoria;    
         
-        File folder = new File(diretoria);
-        if(!folder.exists()){
-            folder.createNewFile();
-        }
-        File[] arrayFicheiros = folder.listFiles();
-        listaFicheiros=new ListaFicheiros();
-        for(File ficheiro : arrayFicheiros){
-            Ficheiro ficheiroTemp=new Ficheiro(ficheiro.getName(),ficheiro.length());
-            listaFicheiros.addFicheiro(ficheiroTemp);
-            System.out.println(ficheiroTemp.toString());
-        }      
+        actualizaListaFicheiros();
         
         group=InetAddress.getByName("225.15.15.15");
         multicastSocketUDP = new MulticastSocket(7000);
@@ -98,6 +88,24 @@ public class Servidor implements Serializable{
         //boolean
         primario=false;
         System.out.println("Servidor a correr....");
+    }
+    
+    public void actualizaListaFicheiros(){
+        File folder = new File(diretoria);
+        if(!folder.exists()){
+            try {
+                folder.createNewFile();
+            } catch (IOException ex) {
+                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        File[] arrayFicheiros = folder.listFiles();
+        listaFicheiros=new ListaFicheiros();
+        for(File ficheiro : arrayFicheiros){
+            Ficheiro ficheiroTemp=new Ficheiro(ficheiro.getName(),ficheiro.length());
+            listaFicheiros.addFicheiro(ficheiroTemp);
+            System.out.println(ficheiroTemp.toString());
+        }   
     }
     
     public MulticastSocket getMulticastSocket(){
@@ -207,6 +215,7 @@ public class Servidor implements Serializable{
     public void enviaListaFicheiros(Socket socket) {
         ObjectOutputStream oos = null;
         try {
+            actualizaListaFicheiros();
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(listaFicheiros);
             oos.flush();
@@ -270,9 +279,10 @@ public class Servidor implements Serializable{
         enviaFicheiro.start();
     }
     
-    public void arrancaThreadRecebeFicheiro(Socket pedidosSocketTCP,Pedido pedido){
+    public RecebeFicheiro arrancaThreadRecebeFicheiro(Socket pedidosSocketTCP,Pedido pedido){
         RecebeFicheiro recebeFicheiro=new RecebeFicheiro(this,pedidosSocketTCP,pedido);
         recebeFicheiro.start();
+        return recebeFicheiro;
     }
     
     public void arrancaThreadEliminaFicheiro(Pedido pedido){

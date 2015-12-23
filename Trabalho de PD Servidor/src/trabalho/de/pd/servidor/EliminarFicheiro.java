@@ -61,6 +61,8 @@ public class EliminarFicheiro extends Thread {
             }
             }catch (IOException ex) {
                 Logger.getLogger(EliminarFicheiro.class.getName()).log(Level.SEVERE, null, ex);
+            }finally{
+                servidor.actualizaListaFicheiros();
             }
         }else{
             ObjectOutputStream oos;
@@ -70,6 +72,8 @@ public class EliminarFicheiro extends Thread {
                 oos.flush();
             } catch (IOException ex) {
                 Logger.getLogger(EliminarFicheiro.class.getName()).log(Level.SEVERE, null, ex);
+            }finally{
+                servidor.actualizaListaFicheiros();
             }
             
         }

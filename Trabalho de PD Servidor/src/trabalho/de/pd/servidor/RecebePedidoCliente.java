@@ -39,9 +39,17 @@ public class RecebePedidoCliente extends Thread {
         System.out.println("[SERVIDOR] Thread RecebePedidoCliente - " + socket.getInetAddress().getHostAddress() + ":"
                 + socket.getLocalPort());
         servidor.enviaListaFicheiros(socket);
+        
+        ObjectInputStream ois=null;
+        try {
+            ois = new ObjectInputStream(socket.getInputStream());
+        } catch (IOException ex) {
+            Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         do {
             try {
-                ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+                socket.setSoTimeout(0);
                 ObjectOutputStream oos = null;
                 Object msg = ois.readObject();
                 if (msg instanceof Pedido) {
@@ -55,20 +63,25 @@ public class RecebePedidoCliente extends Thread {
                                 ListaFicheiros auxLF = servidor.getListaFicheiros();
                                 if (auxLF.hasFicheiro(((Pedido) msg).getNomeFicheiro())) {
                                     pedido.setAceite(false);
+                                    oos = new ObjectOutputStream(socket.getOutputStream());
+                                    oos.writeObject(pedido);
+                                    oos.flush();
                                 } else {
                                     pedido.setAceite(true);
-                                    servidor.arrancaThreadRecebeFicheiro(socket, pedido);
-                                }
-                                oos = new ObjectOutputStream(socket.getOutputStream());
+                                    oos = new ObjectOutputStream(socket.getOutputStream());
+                                    oos.writeObject(pedido);
+                                    oos.flush();
+                                    servidor.arrancaThreadRecebeFicheiro(socket, pedido).join();
+                                }                         
                             } else {
                                 pedido.setSocketPrimario(servidor.getPrimarioSocketTCP());
-                                oos = new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
-                            }
-                            oos.writeObject(pedido);
-                            oos.flush();
+                            }                            
                             break;
                         case Pedido.ELIMINAR:
                             servidor.arrancaThreadEliminaFicheiro(pedido);
+                            break;
+                        case Pedido.ACTUALIZACAO:
+                            servidor.enviaListaFicheiros(socket);
                             break;
                         default:
                             break;
@@ -83,6 +96,10 @@ public class RecebePedidoCliente extends Thread {
                 Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(RecebePedidoCliente.class.getName()).log(Level.SEVERE, null, ex);
+            }finally{
+                
             }
         } while (running);
     }
