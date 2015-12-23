@@ -105,7 +105,7 @@ public class Servidor implements Serializable{
             Ficheiro ficheiroTemp=new Ficheiro(ficheiro.getName(),ficheiro.length());
             listaFicheiros.addFicheiro(ficheiroTemp);
             System.out.println(ficheiroTemp.toString());
-        }   
+        }
     }
     
     public MulticastSocket getMulticastSocket(){

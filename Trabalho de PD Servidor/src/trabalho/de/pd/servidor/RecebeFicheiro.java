@@ -74,6 +74,8 @@ public class RecebeFicheiro extends Thread {
                     while ((nbytes = inputFicheiro.read(filechunck)) > 0) {
                         fileOut.write(filechunck, 0, nbytes);
                     }
+                    fileOut.flush();
+                    fileOut.close();
                 }
                 
                 for(int i=0;i<servidor.getSocketSecundarios().size();i++){
