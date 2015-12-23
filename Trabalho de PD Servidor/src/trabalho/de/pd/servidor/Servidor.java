@@ -267,6 +267,7 @@ public class Servidor implements Serializable{
         RecebePedidoSecundario thread = new RecebePedidoSecundario(this,socket);
         thread.start();
         threadsPedidoSecundario.add(thread);
+        System.out.println("[SERVIDOR] Numero de secundarios:"+threadsPedidoSecundario.size());
     }
     
     public void removeEscutaSocket(Socket socket){

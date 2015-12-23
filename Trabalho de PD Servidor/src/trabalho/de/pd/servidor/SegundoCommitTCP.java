@@ -35,16 +35,6 @@ public class SegundoCommitTCP extends Thread {
         running = true;
     }
 
-    public void actualizaListaFicheiros() {
-        File folder = new File(servidor.getDiretoria() + "\\ServerFicheiros");
-        File[] arrayFicheiros = folder.listFiles();
-        servidor.setListaFicheiros(new ListaFicheiros());
-        for (File ficheiro : arrayFicheiros) {
-            Ficheiro ficheiroTemp = new Ficheiro(ficheiro.getName(), ficheiro.length());
-            servidor.getListaFicheiros().addFicheiro(ficheiroTemp);
-        }
-    }
-
     public void termina() {
         running = false;
     }
@@ -68,8 +58,10 @@ public class SegundoCommitTCP extends Thread {
                             oos.writeBoolean(!file.exists());
                             oos.flush();
                         }
+                        sleep(1000); //testar
                         Boolean confirma;
                         confirma = ois.readBoolean();
+                        sleep(3000);
                         if (confirma == true) {
                             if (pedido.getTipoPedido() == Pedido.ELIMINAR) {
                                 file.delete();
@@ -91,6 +83,8 @@ public class SegundoCommitTCP extends Thread {
                 } catch (IOException ex) {
                     System.out.println("[SECUNDARIO] a espera de msg do primario...");
                 } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(SegundoCommitTCP.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InterruptedException ex) {
                     Logger.getLogger(SegundoCommitTCP.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }

@@ -34,7 +34,7 @@ public class RecebeFicheiro extends Thread {
         this.servidor = servidor;
         this.socketPedido = socketPedido;
         try {
-            socketPedido.setSoTimeout(1000);
+            socketPedido.setSoTimeout(2000);
         } catch (SocketException ex) {
             Logger.getLogger(RecebeFicheiro.class.getName()).log(Level.SEVERE, null, ex);
         }

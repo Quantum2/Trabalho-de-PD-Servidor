@@ -41,7 +41,7 @@ public class EliminarFicheiro extends Thread {
                     oos.writeObject(pedido);
                     oos.flush();
                 }
-                for(int i=0;i<servidor.getSocketSecundarios().size();i++){
+                for(int i=0;i<servidor.getSocketSecundarios().size();i++){   //da aqui problemas, as vezes nao aceita o header, outras apanha um objeto diferente, outra o secundario nao se encontra no array
                     ObjectInputStream iss=new ObjectInputStream(servidor.getSocketSecundarios().get(i).getInputStream());
                     if(!iss.readBoolean()){
                         flg=false;

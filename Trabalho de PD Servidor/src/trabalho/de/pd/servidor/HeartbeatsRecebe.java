@@ -23,7 +23,6 @@ public class HeartbeatsRecebe extends Thread{
 
     Servidor servidor=null;
     public static final int MAX_SIZE=10000;
-    int contador = 0;
     protected DatagramPacket packet = null;
     protected boolean running = false;
     public InetAddress ipPrimario = null;
@@ -49,9 +48,9 @@ public class HeartbeatsRecebe extends Thread{
     }
 
     @Override
-    public void run()  {   //falta fazer quando ha mais do que 1 primario && o fazer o tempo de 5 segundos a espera e nao com o timeout
+    public void run()  {
         System.out.println("Thread HeartbeatsRecebe a correr...");
-        Object msgO=null;
+        Object msgO=null;      
         do {
             try {
                 msgO = null;
@@ -83,24 +82,12 @@ public class HeartbeatsRecebe extends Thread{
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
-                /*try {
-                    if(msg==null || msg.getPrimario()==false){
-                    servidor.setTFinal(System.currentTimeMillis());
-                    if(((servidor.getTFinal()-servidor.getTStart())/1000.0)>5)
-                    contador++;
-                    }
-                    if(servidor.isPrimario())
-                    contador=0;
-                    sleep(100);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(HeartbeatsRecebe.class.getName()).log(Level.SEVERE, null, ex);
-                }*/
                 long auxTempo = System.currentTimeMillis();
                 long resultado = auxTempo-lastPrimaryBeat;
                 if (resultado / 1000.0 > 15) {
                     break;
                 }
             }
-        } while (contador!=3 && running);
+        } while (running);
     }
 }
