@@ -41,6 +41,7 @@ public class RecebePedidoSecundario extends Thread {
         System.out.println("Thread RecebePedido a correr...."); //falta diferenciar o primario e o secundario
         do {
             try {
+                socket.setSoTimeout(1000);
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 Object msg = ois.readObject();
                 if (msg instanceof Pedido) {
@@ -75,7 +76,7 @@ public class RecebePedidoSecundario extends Thread {
                     }
                 }
             } catch (SocketTimeoutException e) {
-                System.out.println("Timeout RecebePedidoSecundario\n");
+                System.out.print("Timeout RecebePedidoSecundario\n");
             } catch (IOException ex) {
                 System.out.println("Socket removido");
                  servidor.removeEscutaSocket(socket);

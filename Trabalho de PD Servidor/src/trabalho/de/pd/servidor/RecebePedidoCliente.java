@@ -73,15 +73,22 @@ public class RecebePedidoCliente extends Thread {
                                     oos.flush();
                                     servidor.arrancaThreadRecebeFicheiro(socket, pedido).join();
                                 }                         
-                            } else {
-                                pedido.setSocketPrimario(servidor.getPrimarioSocketTCP());
-                            }                            
+                            }                           
                             break;
                         case Pedido.ELIMINAR:
-                            ListaFicheiros auxLFR = servidor.getListaFicheiros();
-                            if(auxLFR.hasFicheiro(pedido.getNomeFicheiro())){
-                                servidor.arrancaThreadEliminaFicheiro(pedido).join();
-                                servidor.enviaListaFicheiros(socket);
+                            if (servidor.isPrimario()) {
+                                ListaFicheiros auxLFR = servidor.getListaFicheiros();
+                                if (auxLFR.hasFicheiro(pedido.getNomeFicheiro())) {
+                                    for (int i = 0; i < servidor.getArrayPedidoSecundario().size(); i++) {
+                                        servidor.getArrayPedidoSecundario().get(i).termina();
+                                        servidor.getArrayPedidoSecundario().get(i).join();
+                                    }
+                                    servidor.arrancaThreadEliminaFicheiro(pedido).join();
+                                    servidor.enviaListaFicheiros(socket);
+                                    for (int i = 0; i < servidor.getArrayPedidoSecundario().size(); i++) {
+                                        servidor.getArrayPedidoSecundario().get(i).run();
+                                    }
+                                }
                             }
                             break;
                         case Pedido.ACTUALIZACAO:

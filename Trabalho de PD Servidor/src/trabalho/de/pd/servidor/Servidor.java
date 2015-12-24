@@ -390,4 +390,8 @@ public class Servidor implements Serializable{
     public ArrayList<Socket> getSocketSecundarios(){
         return socketsSecundarios;
     }
+    
+    public ArrayList<RecebePedidoSecundario> getArrayPedidoSecundario(){
+        return threadsPedidoSecundario;            
+    }
 }

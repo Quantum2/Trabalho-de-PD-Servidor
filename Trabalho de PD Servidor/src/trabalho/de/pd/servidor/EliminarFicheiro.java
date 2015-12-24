@@ -13,6 +13,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,7 +25,7 @@ public class EliminarFicheiro extends Thread {
 
     Servidor servidor = null;
     Socket socketPedido = null;
-    Pedido pedido=null;
+    Pedido pedido = null;
 
     public EliminarFicheiro(Servidor servidor, Pedido pedido) {
         this.servidor = servidor;
@@ -33,39 +34,41 @@ public class EliminarFicheiro extends Thread {
 
     @Override
     public void run() {
-        boolean flg=true;
+        Boolean flg = true;
         if (servidor.isPrimario()) {
-            try{
-                for(int i=0;i<servidor.getSocketSecundarios().size();i++){
-                    ObjectOutputStream oos=new ObjectOutputStream(servidor.getSocketSecundarios().get(i).getOutputStream());
+            try {
+                ArrayList<Socket> socketsSecundarios = servidor.getSocketSecundarios();
+                for (int i = 0; i < socketsSecundarios.size(); i++) {
+                    Socket socket = socketsSecundarios.get(i);
+                    ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                     oos.writeObject(pedido);
                     oos.flush();
                 }
-                for(int i=0;i<servidor.getSocketSecundarios().size();i++){   //da aqui problemas, as vezes nao aceita o header, outras apanha um objeto diferente, outra o secundario nao se encontra no array
-                    ObjectInputStream iss=new ObjectInputStream(servidor.getSocketSecundarios().get(i).getInputStream());
-                    if(!iss.readBoolean()){
-                        flg=false;
+                for (int i = 0; i < socketsSecundarios.size(); i++) {   //da aqui problemas, as vezes nao aceita o header, outras apanha um objeto diferente, outra o secundario nao se encontra no array
+                    ObjectInputStream iss = new ObjectInputStream(socketsSecundarios.get(i).getInputStream());
+                    if (!iss.readBoolean()) {
+                        flg = false;
                         break;
                     }
                 }
-                for(int i=0;i<servidor.getSocketSecundarios().size();i++){
-                    ObjectOutputStream oos=new ObjectOutputStream(servidor.getSocketSecundarios().get(i).getOutputStream());
-                    oos.writeBoolean(flg);
-                    oos.flush();
+                
+                if (flg) {
+                    String dir = (servidor.getDiretoria() + "\\" + pedido.getNomeFicheiro());
+                    File file = new File(dir);
+                    System.gc();
+                    System.out.println("Elimina ficheiro: "+file.delete());
+                    for (int i = 0; i < socketsSecundarios.size(); i++) {
+                        ObjectOutputStream oos = new ObjectOutputStream(socketsSecundarios.get(i).getOutputStream());
+                        oos.writeBoolean((Boolean)flg);
+                        oos.flush();
+                    }
                 }
-            
-            if(flg){
-                String dir = (servidor.getDiretoria()+"\\"+pedido.getNomeFicheiro());
-                File file = new File(dir);
-                System.gc();
-                file.delete();
-            }
-            }catch (IOException ex) {
+            } catch (IOException ex) {
                 Logger.getLogger(EliminarFicheiro.class.getName()).log(Level.SEVERE, null, ex);
-            }finally{
+            } finally {
                 servidor.actualizaListaFicheiros();
             }
-        }else{
+        } else {
             ObjectOutputStream oos;
             try {
                 oos = new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
@@ -73,10 +76,10 @@ public class EliminarFicheiro extends Thread {
                 oos.flush();
             } catch (IOException ex) {
                 Logger.getLogger(EliminarFicheiro.class.getName()).log(Level.SEVERE, null, ex);
-            }finally{
+            } finally {
                 servidor.actualizaListaFicheiros();
             }
-            
+
         }
     }
 }

@@ -12,7 +12,9 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,25 +51,24 @@ public class SegundoCommitTCP extends Thread {
                     if (msg instanceof Pedido) {
                         ObjectOutputStream oos = new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
                         Pedido pedido = (Pedido) msg;
-                        File file = new File(servidor.getDiretoria() + pedido.getNomeFicheiro());
+                        File fileCommit = new File(servidor.getDiretoria() +"\\" +pedido.getNomeFicheiro());
                         if (pedido.getTipoPedido() == Pedido.ELIMINAR) {
-                            oos.writeBoolean(file.canRead());
+                            oos.writeBoolean(fileCommit.canExecute());
                             oos.flush();
                         }
                         if (pedido.getTipoPedido() == Pedido.UPLOAD) {
-                            oos.writeBoolean(!file.exists());
+                            oos.writeBoolean(!fileCommit.exists());
                             oos.flush();
                         }
-                        sleep(1000); //testar
+                        ObjectInputStream ois2 = new ObjectInputStream(servidor.getPrimarioSocketTCP().getInputStream());
                         Boolean confirma;
-                        confirma = ois.readBoolean();
-                        sleep(3000);
+                        confirma =(Boolean) ois2.readBoolean();
                         if (confirma == true) {
                             if (pedido.getTipoPedido() == Pedido.ELIMINAR) {
-                                file.delete();
+                                System.out.println("Elimina ficheiro: "+fileCommit.delete());  //so elimina se passares com o debug aqui
                             }
                             if (pedido.getTipoPedido() == Pedido.UPLOAD) {
-                                Pedido p = new Pedido(file.getName(), 1);
+                                Pedido p = new Pedido(fileCommit.getName(), 1);
                                 oos.writeObject(p);
                                 oos.flush();
 
@@ -80,11 +81,17 @@ public class SegundoCommitTCP extends Thread {
                             }
                         }
                     }
+                } catch (SocketTimeoutException e) {
+                    System.out.println("[SECUNDARIO]Timeout SegundoCommitTCP\n");
                 } catch (IOException ex) {
-                    System.out.println("[SECUNDARIO] a espera de msg do primario...");
+                    System.out.println("[SECUNDARIO] Erro com primario");
+                    try {
+                        servidor.getPrimarioSocketTCP().close();
+                    } catch (IOException ex1) {
+                        Logger.getLogger(SegundoCommitTCP.class.getName()).log(Level.SEVERE, null, ex1);
+                    }
+                    running=false;
                 } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(SegundoCommitTCP.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (InterruptedException ex) {
                     Logger.getLogger(SegundoCommitTCP.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
