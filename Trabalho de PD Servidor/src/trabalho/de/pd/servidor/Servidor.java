@@ -21,6 +21,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,6 +31,9 @@ import static trabalho.de.pd.servidor.SegundoCommitTCP.MAX_SIZE;
  * @author ASUS
  */
 public class Servidor implements Serializable{
+    //RMI
+    RMIServidor rmiServidor=null;
+    
     public static final int MAX_SIZE=10000;
     public String diretoria=null;
     public InetAddress group;
@@ -226,6 +230,12 @@ public class Servidor implements Serializable{
     
     public void arrancaThreads()
     {
+        try {
+            rmiServidor=new RMIServidor(this);
+        } catch (RemoteException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         if(!isPrimario()){           
             try {
                 Pedido pedido=new Pedido("",4);
@@ -393,5 +403,18 @@ public class Servidor implements Serializable{
     
     public ArrayList<RecebePedidoSecundario> getArrayPedidoSecundario(){
         return threadsPedidoSecundario;            
+    }
+    
+    public InetAddress getEndereçoLocal(){
+        try {
+            return InetAddress.getLocalHost();
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+    
+    public int getNumeroClientes(){
+        return socketsClientes.size();
     }
 }
