@@ -11,6 +11,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  *
@@ -20,9 +21,39 @@ public class RMIServidor extends UnicastRemoteObject implements RMIServidorInter
     
     Servidor servidor;
     
+    List<TrabalhoPDRMIMonotorizacaoInterface> observers;
+    
     public RMIInfo getInfo() throws RemoteException
-    {               
-        return new RMIInfo(servidor.isPrimario(),servidor.getEndereçoLocal(),servidor.getTcpPort(),servidor.getListaFicheiros(),servidor.getNumeroClientes());
+    {            
+        RMIInfo rmiInfo=new RMIInfo(servidor.isPrimario(),servidor.getEndereçoLocal(),servidor.getTcpPort(),servidor.getListaFicheiros(),servidor.getNumeroClientes());
+        notifyObservers("Solicitado servidorRMI permitido: Primario:" +rmiInfo.getIsPrimario()+" Endereço:"+rmiInfo.getEndereçoIP()+" Porto:"+rmiInfo.getPortoTCP()+" Numero Clientes:"+rmiInfo.getNumeroClientes());  
+        return rmiInfo;
+    }
+    
+    public void addObserver(TrabalhoPDRMIMonotorizacaoInterface observer) {
+        if(!observers.contains(observer)){
+            observers.add(observer);
+            System.out.println("+ um observador.");
+        }
+    }
+
+    public void removeObserver(TrabalhoPDRMIMonotorizacaoInterface observer) {
+        if(observers.remove(observer))
+            System.out.println("- um observador.");
+    }
+    
+    public synchronized void notifyObservers(String msg)
+    {
+        int i;
+        
+        for(i=0; i < observers.size(); i++){
+            try{       
+                observers.get(i).notifyNewOperationConcluded(msg);
+            }catch(RemoteException e){
+                observers.remove(i--);
+                System.out.println("- um observador (observador inacessivel).");
+            }
+        }
     }
     
     public RMIServidor(Servidor servidor) throws RemoteException {
@@ -64,4 +95,6 @@ public class RMIServidor extends UnicastRemoteObject implements RMIServidorInter
             System.exit(1);
         }                
     }  
+
+    
 }
