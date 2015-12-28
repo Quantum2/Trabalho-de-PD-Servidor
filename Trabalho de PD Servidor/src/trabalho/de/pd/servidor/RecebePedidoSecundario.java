@@ -42,6 +42,7 @@ public class RecebePedidoSecundario extends Thread {
         do {
             try {
                 socket.setSoTimeout(1000);
+                ObjectOutputStream oos = null;
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 Object msg = ois.readObject();
                 if (msg instanceof Pedido) {
@@ -51,22 +52,48 @@ public class RecebePedidoSecundario extends Thread {
                             servidor.arrancaThreadEnviaFicheiro(socket, pedido);
                             break;
                         case Pedido.UPLOAD:
-                            ListaFicheiros auxLF = servidor.getListaFicheiros();
-                            if (auxLF.hasFicheiro(pedido.getNomeFicheiro())) {
-                                pedido.setAceite(false);
-                                ObjectOutputStream oos = new ObjectOutputStream(pedido.getSocketCliente().getOutputStream());
-                                oos.writeObject(pedido);
-                                oos.flush();
-                            } else {
-                                pedido.setAceite(true);
-                                ObjectOutputStream oos = new ObjectOutputStream(pedido.getSocketCliente().getOutputStream());
-                                oos.writeObject(pedido);
-                                oos.flush();
-                                servidor.arrancaThreadRecebeFicheiro(pedido.getSocketCliente(), pedido).join();
-                            }
+                            if (servidor.isPrimario()) {
+                                ListaFicheiros auxLF = servidor.getListaFicheiros();
+                                if (auxLF.hasFicheiro(((Pedido) msg).getNomeFicheiro())) {
+                                    pedido.setAceite(false);
+                                    oos = new ObjectOutputStream(socket.getOutputStream());
+                                    oos.writeObject(pedido);
+                                    oos.flush();
+                                } else {
+                                    pedido.setAceite(true);
+                                    oos = new ObjectOutputStream(socket.getOutputStream());
+                                    oos.writeObject(pedido);
+                                    oos.flush();
+                                    for (int i = 0; i < servidor.getArrayPedidoSecundario().size(); i++) {
+                                        servidor.getArrayPedidoSecundario().get(i).termina();
+                                        servidor.getArrayPedidoSecundario().get(i).join();
+                                    }
+                                    servidor.arrancaThreadRecebeFicheiro(socket, pedido).join();
+                                    for (int i = 0; i < servidor.getArrayPedidoSecundario().size(); i++) {
+                                        servidor.getArrayPedidoSecundario().get(i).run();
+                                    }
+                                }                     
+                            }else{
+                                servidor.arrancaThreadRecebeFicheiro(socket, pedido).join();
+                            } 
                             break;
                         case Pedido.ELIMINAR:
-                            servidor.arrancaThreadEliminaFicheiro(pedido);
+                            if (servidor.isPrimario()) {
+                                ListaFicheiros auxLFR = servidor.getListaFicheiros();
+                                if (auxLFR.hasFicheiro(pedido.getNomeFicheiro())) {
+                                    for (int i = 0; i < servidor.getArrayPedidoSecundario().size(); i++) {
+                                        servidor.getArrayPedidoSecundario().get(i).termina();
+                                        servidor.getArrayPedidoSecundario().get(i).join();
+                                    }
+                                    servidor.arrancaThreadEliminaFicheiro(pedido).join();
+                                    servidor.enviaListaFicheiros(socket);
+                                    for (int i = 0; i < servidor.getArrayPedidoSecundario().size(); i++) {
+                                        servidor.getArrayPedidoSecundario().get(i).run();
+                                    }
+                                }
+                            }else{
+                                servidor.arrancaThreadEliminaFicheiro(pedido).join();
+                            }
                             break;
                         case Pedido.ACTUALIZACAO:
                             servidor.enviaListaFicheiros(socket);

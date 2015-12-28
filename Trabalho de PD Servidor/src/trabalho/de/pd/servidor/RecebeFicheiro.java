@@ -82,7 +82,7 @@ public class RecebeFicheiro extends Thread {
                     ObjectOutputStream oos=new ObjectOutputStream(servidor.getSocketSecundarios().get(i).getOutputStream());
                     oos.writeBoolean(flg);
                     oos.flush();
-                }             
+                }          
             }else{
                 ObjectOutputStream oos =new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
                 pedido.setSocketCliente(socketPedido);

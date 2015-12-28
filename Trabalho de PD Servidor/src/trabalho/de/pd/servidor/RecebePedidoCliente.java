@@ -71,8 +71,17 @@ public class RecebePedidoCliente extends Thread {
                                     oos = new ObjectOutputStream(socket.getOutputStream());
                                     oos.writeObject(pedido);
                                     oos.flush();
+                                    for (int i = 0; i < servidor.getArrayPedidoSecundario().size(); i++) {
+                                        servidor.getArrayPedidoSecundario().get(i).termina();
+                                        servidor.getArrayPedidoSecundario().get(i).join();
+                                    }
                                     servidor.arrancaThreadRecebeFicheiro(socket, pedido).join();
-                                }                         
+                                    for (int i = 0; i < servidor.getArrayPedidoSecundario().size(); i++) {
+                                        servidor.getArrayPedidoSecundario().get(i).run();
+                                    }
+                                }                     
+                            }else{
+                                servidor.arrancaThreadRecebeFicheiro(socket, pedido).join();
                             }                           
                             break;
                         case Pedido.ELIMINAR:
@@ -89,6 +98,8 @@ public class RecebePedidoCliente extends Thread {
                                         servidor.getArrayPedidoSecundario().get(i).run();
                                     }
                                 }
+                            }else{
+                                servidor.arrancaThreadEliminaFicheiro(pedido).join();
                             }
                             break;
                         case Pedido.ACTUALIZACAO:

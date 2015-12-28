@@ -21,15 +21,18 @@ import java.util.List;
 public class RMIServidor extends UnicastRemoteObject implements RMIServidorInterface{
     
     Servidor servidor;
-    
+    RMIInfo rmiInfo=null;
     List<TrabalhoPDRMIMonotorizacaoInterface> observers;
     
     public RMIInfo getInfo() throws RemoteException
     {            
-        RMIInfo rmiInfo=new RMIInfo(servidor.isPrimario(),servidor.getEndereçoLocal(),servidor.getTcpPort(),servidor.getListaFicheiros(),servidor.getNumeroClientes());
         if(observers.size()>0)
             notifyObservers("Solicitado servidorRMI permitido: Primario:" +rmiInfo.getIsPrimario()+" Endereço:"+rmiInfo.getEndereçoIP()+" Porto:"+rmiInfo.getPortoTCP()+" Numero Clientes:"+rmiInfo.getNumeroClientes());  
         return rmiInfo;
+    }
+    
+    public void changeData(RMIInfo info){
+        rmiInfo=info;
     }
     
     public void addObserver(TrabalhoPDRMIMonotorizacaoInterface observer) {
@@ -61,6 +64,8 @@ public class RMIServidor extends UnicastRemoteObject implements RMIServidorInter
     public RMIServidor(Servidor servidor) throws RemoteException {
         this.servidor=servidor;
         observers=new ArrayList<>();
+        rmiInfo=new RMIInfo(servidor.isPrimario(),servidor.getEndereçoLocal(),servidor.getTcpPort(),servidor.getListaFicheiros(),servidor.getNumeroClientes());
+        
         try{
             
             Registry r;
@@ -87,7 +92,6 @@ public class RMIServidor extends UnicastRemoteObject implements RMIServidorInter
             // obter a sua referencia remota (endereco IP, porto de escuta, etc.).
              
             r.bind("RMITrabalho", this);
-                   
             System.out.println("Servico RemoteTime registado no registry...");
             
         }catch(RemoteException e){
