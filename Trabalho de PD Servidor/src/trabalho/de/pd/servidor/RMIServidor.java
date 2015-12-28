@@ -10,6 +10,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -26,7 +27,8 @@ public class RMIServidor extends UnicastRemoteObject implements RMIServidorInter
     public RMIInfo getInfo() throws RemoteException
     {            
         RMIInfo rmiInfo=new RMIInfo(servidor.isPrimario(),servidor.getEndereçoLocal(),servidor.getTcpPort(),servidor.getListaFicheiros(),servidor.getNumeroClientes());
-        notifyObservers("Solicitado servidorRMI permitido: Primario:" +rmiInfo.getIsPrimario()+" Endereço:"+rmiInfo.getEndereçoIP()+" Porto:"+rmiInfo.getPortoTCP()+" Numero Clientes:"+rmiInfo.getNumeroClientes());  
+        if(observers.size()>0)
+            notifyObservers("Solicitado servidorRMI permitido: Primario:" +rmiInfo.getIsPrimario()+" Endereço:"+rmiInfo.getEndereçoIP()+" Porto:"+rmiInfo.getPortoTCP()+" Numero Clientes:"+rmiInfo.getNumeroClientes());  
         return rmiInfo;
     }
     
@@ -57,7 +59,8 @@ public class RMIServidor extends UnicastRemoteObject implements RMIServidorInter
     }
     
     public RMIServidor(Servidor servidor) throws RemoteException {
-        this.servidor=servidor;   
+        this.servidor=servidor;
+        observers=new ArrayList<>();
         try{
             
             Registry r;
@@ -83,7 +86,7 @@ public class RMIServidor extends UnicastRemoteObject implements RMIServidorInter
             // Regista o servico para que os clientes possam encontra'-lo, ou seja,
             // obter a sua referencia remota (endereco IP, porto de escuta, etc.).
              
-            r.bind("RMITrabalho", this);     
+            r.bind("RMITrabalho", this);
                    
             System.out.println("Servico RemoteTime registado no registry...");
             
