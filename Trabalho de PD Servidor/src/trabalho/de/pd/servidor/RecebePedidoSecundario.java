@@ -65,12 +65,16 @@ public class RecebePedidoSecundario extends Thread {
                                     oos.writeObject(pedido);
                                     oos.flush();
                                     for (int i = 0; i < servidor.getArrayPedidoSecundario().size(); i++) {
-                                        servidor.getArrayPedidoSecundario().get(i).termina();
-                                        servidor.getArrayPedidoSecundario().get(i).join();
+                                        if(!servidor.getArrayPedidoSecundario().get(i).equals(this))
+                                        {
+                                            servidor.getArrayPedidoSecundario().get(i).termina();
+                                            servidor.getArrayPedidoSecundario().get(i).join();
+                                        }
                                     }
                                     servidor.arrancaThreadRecebeFicheiro(socket, pedido).join();
                                     for (int i = 0; i < servidor.getArrayPedidoSecundario().size(); i++) {
-                                        servidor.getArrayPedidoSecundario().get(i).run();
+                                        if(!servidor.getArrayPedidoSecundario().get(i).equals(this))
+                                            servidor.getArrayPedidoSecundario().get(i).run();
                                     }
                                 }                     
                             }else{
