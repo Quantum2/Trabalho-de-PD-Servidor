@@ -10,7 +10,11 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.SocketException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,6 +43,40 @@ public class HeartbeatsEnvia extends Thread {
         System.out.println("Thread HearbeatEnvia a correr.....");
         do{
             try {
+                if (servidor.isPrimario()) {
+                    String objectUrl = "rmi://127.0.0.1/RemoteTime"; //rmiregistry on localhost
+                    System.out.println("[Secundario] Endereço:" + servidor.getEndereçoLocal().getHostAddress());
+                    objectUrl = "rmi://" + servidor.getEndereçoLocal().getHostAddress() + "/RMITrabalho";
+                    RMIServidorInterface rmiServidor;
+                    try {
+                        rmiServidor = (RMIServidorInterface) Naming.lookup(objectUrl);
+                        RMIInfo info = new RMIInfo(servidor.isPrimario(), servidor.getEndereçoLocal(), servidor.getTcpPort(), servidor.getListaFicheiros(), servidor.getNumeroClientes());
+                        rmiServidor.changeData(info);
+                    } catch (NotBoundException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (MalformedURLException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (RemoteException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    String objectUrl = "rmi://127.0.0.1/RemoteTime"; //rmiregistry on localhost
+                    System.out.println("[Secundario] Endereço:" + servidor.getPrimarioSocketTCP().getInetAddress().getHostAddress());
+                    objectUrl = "rmi://" + servidor.getPrimarioSocketTCP().getInetAddress().getHostAddress() + "/RMITrabalho";
+                    RMIServidorInterface rmiServidor;
+                    try {
+                        rmiServidor = (RMIServidorInterface) Naming.lookup(objectUrl);
+                        RMIInfo info = new RMIInfo(servidor.isPrimario(), servidor.getEndereçoLocal(), servidor.getTcpPort(), servidor.getListaFicheiros(), servidor.getNumeroClientes());
+                        rmiServidor.changeData(info);
+                    } catch (NotBoundException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (MalformedURLException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (RemoteException ex) {
+                        Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                
                 HeartBeat msg=new HeartBeat(servidor.getTcpPort(),servidor.isPrimario(),InetAddress.getByName(InetAddress.getLocalHost().getHostAddress()));
                 ByteArrayOutputStream byteout = new ByteArrayOutputStream();
                 ObjectOutputStream send = new ObjectOutputStream(byteout);

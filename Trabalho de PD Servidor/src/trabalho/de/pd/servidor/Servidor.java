@@ -239,22 +239,6 @@ public class Servidor implements Serializable{
             } catch (RemoteException ex) {
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }else{
-            String objectUrl = "rmi://127.0.0.1/RemoteTime"; //rmiregistry on localhost
-            System.out.println("[Secundario] Endereço:"+primarioSocketTCP.getInetAddress().getHostAddress());
-            objectUrl = "rmi://" + primarioSocketTCP.getInetAddress().getHostAddress() + "/RMITrabalho";
-            RMIServidorInterface rmiServidor;
-            try {
-                rmiServidor = (RMIServidorInterface) Naming.lookup(objectUrl);
-                RMIInfo info=new RMIInfo(this.isPrimario(),this.getEndereçoLocal(),this.getTcpPort(),this.getListaFicheiros(),this.getNumeroClientes());
-                rmiServidor.changeData(info);
-            } catch (NotBoundException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (RemoteException ex) {
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
-            }          
         }
         
         if(!isPrimario()){           
@@ -274,6 +258,7 @@ public class Servidor implements Serializable{
         try {
             heartRECV=new HeartbeatsRecebe(this);
             heartRECV.start();
+            
             heartENVIA=new HeartbeatsEnvia(this);
             heartENVIA.start();
             

@@ -25,14 +25,14 @@ public class RMIServidor extends UnicastRemoteObject implements RMIServidorInter
     List<TrabalhoPDRMIMonotorizacaoInterface> observers;
     
     public RMIInfo getInfo() throws RemoteException
-    {            
-        if(observers.size()>0)
-            notifyObservers("Solicitado servidorRMI permitido: Primario:" +rmiInfo.getIsPrimario()+" Endereço:"+rmiInfo.getEndereçoIP()+" Porto:"+rmiInfo.getPortoTCP()+" Numero Clientes:"+rmiInfo.getNumeroClientes());  
+    {
         return rmiInfo;
     }
     
     public void changeData(RMIInfo info){
         rmiInfo=info;
+        if(observers.size()>0)
+            notifyObservers("Solicitado servidorRMI permitido: Primario:" +rmiInfo.getIsPrimario()+" Endereço:"+rmiInfo.getEndereçoIP()+" Porto:"+rmiInfo.getPortoTCP()+" Numero Clientes:"+rmiInfo.getNumeroClientes());  
     }
     
     public void addObserver(TrabalhoPDRMIMonotorizacaoInterface observer) {
