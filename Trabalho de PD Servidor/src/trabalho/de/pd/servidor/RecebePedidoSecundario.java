@@ -54,16 +54,7 @@ public class RecebePedidoSecundario extends Thread {
                         case Pedido.UPLOAD:
                             if (servidor.isPrimario()) {
                                 ListaFicheiros auxLF = servidor.getListaFicheiros();
-                                if (auxLF.hasFicheiro(((Pedido) msg).getNomeFicheiro())) {
-                                    pedido.setAceite(false);
-                                    oos = new ObjectOutputStream(socket.getOutputStream());
-                                    oos.writeObject(pedido);
-                                    oos.flush();
-                                } else {
-                                    pedido.setAceite(true);
-                                    oos = new ObjectOutputStream(socket.getOutputStream());
-                                    oos.writeObject(pedido);
-                                    oos.flush();
+                                if (!auxLF.hasFicheiro(((Pedido) msg).getNomeFicheiro())) {
                                     for (int i = 0; i < servidor.getArrayPedidoSecundario().size(); i++) {
                                         if(!servidor.getArrayPedidoSecundario().get(i).equals(this))
                                         {

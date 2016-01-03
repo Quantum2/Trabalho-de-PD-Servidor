@@ -47,25 +47,6 @@ public class RecebeFicheiro extends Thread {
         boolean flg=true;
         try {
             if (servidor.isPrimario()) {
-                File folder = new File(servidor.getDiretoria() + "\\" + pedido.getNomeFicheiro());
-                try {
-                    int nbytes;
-                    byte[] filechunck = new byte[Servidor.MAX_SIZE];
-                    InputStream inputFicheiro = socketPedido.getInputStream();
-                    if (!folder.exists()) {
-                        folder.createNewFile();
-                    }
-                    String localFilePath = servidor.diretoria + "\\" + pedido.getNomeFicheiro();
-                    fileOut = new FileOutputStream(localFilePath);
-                    while ((nbytes = inputFicheiro.read(filechunck)) > 0) {
-                        fileOut.write(filechunck, 0, nbytes);
-                    }
-                    fileOut.flush();
-                    fileOut.close();
-                } catch (SocketTimeoutException ex) {
-                    System.out.println("[SERVIDOR] Timeout RecebeFicheiro");
-                }
-
                 for(int i=0;i<servidor.getSocketSecundarios().size();i++){
                     ObjectOutputStream oos=new ObjectOutputStream(servidor.getSocketSecundarios().get(i).getOutputStream());
                     oos.writeObject(pedido);
@@ -79,58 +60,37 @@ public class RecebeFicheiro extends Thread {
                     }
                 }
                 
-                if(!flg){
-                    System.gc();
-                    folder.delete();
+                if (flg) {
+                    File folder = new File(servidor.getDiretoria() + "\\" + pedido.getNomeFicheiro());
+                    try {
+                        int nbytes;
+                        byte[] filechunck = new byte[Servidor.MAX_SIZE];
+                        InputStream inputFicheiro = socketPedido.getInputStream();
+                        if (!folder.exists()) {
+                            folder.createNewFile();
+                        }
+                        String localFilePath = servidor.diretoria + "\\" + pedido.getNomeFicheiro();
+                        fileOut = new FileOutputStream(localFilePath);
+                        while ((nbytes = inputFicheiro.read(filechunck)) > 0) {
+                            fileOut.write(filechunck, 0, nbytes);
+                        }
+                        fileOut.flush();
+                        fileOut.close();
+                    } catch (SocketTimeoutException ex) {
+                        System.out.println("[SERVIDOR] Timeout RecebeFicheiro");
+                    }
                 }
-   
+                
                 for(int i=0;i<servidor.getSocketSecundarios().size();i++){
                     ObjectOutputStream oos=new ObjectOutputStream(servidor.getSocketSecundarios().get(i).getOutputStream());
                     oos.writeBoolean(flg);
                     oos.flush();
                 }          
             }else{
-                int nbytes;
-                byte[] filechunck = new byte[Servidor.MAX_SIZE];
-                File folder = new File(servidor.getDiretoria() + "\\" + pedido.getNomeFicheiro());
-                
-                try {      
-                    InputStream inputFicheiro = socketPedido.getInputStream();
-                    if (!folder.exists()) {
-                        folder.createNewFile();
-                    }
-                    String localFilePath = servidor.diretoria + "\\" + pedido.getNomeFicheiro();
-                    fileOut = new FileOutputStream(localFilePath);
-                    while ((nbytes = inputFicheiro.read(filechunck)) > 0) {
-                        fileOut.write(filechunck, 0, nbytes);
-                    }
-                    fileOut.flush();
-                    fileOut.close();
-                } catch (SocketTimeoutException ex) {
-                    System.out.println("[SERVIDOR] Timeout RecebeFicheiro");
-                }
-                
                 ObjectOutputStream oos =new ObjectOutputStream(servidor.getPrimarioSocketTCP().getOutputStream());
                 pedido.setSocketCliente(socketPedido);
                 oos.writeObject(pedido);
                 oos.flush();
-
-                FileInputStream fileIn = null;
-                try {
-                    filechunck = new byte[Servidor.MAX_SIZE];
-                    OutputStream outputFicheiro = servidor.getPrimarioSocketTCP().getOutputStream();
-                    fileIn = new FileInputStream(servidor.diretoria + "\\" + pedido.getNomeFicheiro());
-                    while ((nbytes = fileIn.read(filechunck)) > 0) {
-                        outputFicheiro.write(filechunck, 0, nbytes);
-                        outputFicheiro.flush();
-                    }
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(EnviaFicheiro.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (SocketTimeoutException ex) {
-                    System.out.println("[SERVIDOR] Timeout EnviaFicheiro");
-                } catch (IOException ex) {
-                    System.out.println("[SERVIDOR] A receber ficheiros");
-                }
             }
 
         } catch (FileNotFoundException ex) {

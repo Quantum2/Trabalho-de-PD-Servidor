@@ -68,6 +68,9 @@ public class RecebePedidoCliente extends Thread {
                                     oos.flush();
                                 } else {
                                     pedido.setAceite(true);
+                                    if(!servidor.isPrimario()){
+                                        pedido.setSocketPrimario(servidor.getPrimarioSocketTCP());
+                                    }
                                     oos = new ObjectOutputStream(socket.getOutputStream());
                                     oos.writeObject(pedido);
                                     oos.flush();
